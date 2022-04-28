@@ -1,6 +1,6 @@
 <?php
 require "src/bootstrap.php";
-use Src\Controller\CustomerController;
+use Src;
 
 header("Content-Type: application/json");
 
@@ -26,3 +26,8 @@ $function = $uri[3];
 
 // GET, POST, PUT, DELETE
 $requestMethod = $_SERVER["REQUEST_METHOD"];
+
+// Handle the API request
+$controller = new RequestHandler($dbConnection, $requestMethod, $userId, $function);
+$controller->processRequest();
+$controller->close();

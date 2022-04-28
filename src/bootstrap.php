@@ -24,4 +24,3 @@ if($initsql !== false) {
         exit();
     }
 }
-
