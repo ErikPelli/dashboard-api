@@ -4,6 +4,7 @@ require '../vendor/autoload.php';
 use Dotenv\Dotenv;
 use Src;
 
+// Load environment variables
 $dotenv = new DotEnv(__DIR__);
 $dotenv->load();
 

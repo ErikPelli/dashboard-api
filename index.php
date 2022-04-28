@@ -9,6 +9,7 @@ $uri = explode( '/', $uri );
 
 // Check endpoint
 if ($uri[1] !== 'api' || !isset($uri[2]) || !isset($uri[3])) {
+    http_response_code(400);
     $error = array(
         "success" => false,
         "error" => "Invalid endpoint",
@@ -18,7 +19,7 @@ if ($uri[1] !== 'api' || !isset($uri[2]) || !isset($uri[3])) {
     exit();
 }
 
-// email
+// Email
 $userId = $uri[2];
 
 // REST API name
