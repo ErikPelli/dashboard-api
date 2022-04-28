@@ -7,28 +7,21 @@ header("Content-Type: application/json");
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode( '/', $uri );
 
-// Check endpoint
 if ($uri[1] !== 'api' || !isset($uri[2]) || !isset($uri[3])) {
-    http_response_code(400);
-    $error = array(
-        "success" => false,
-        "error" => "Invalid endpoint",
-        "result" => array(),
-    );
-    echo json_encode($error, JSON_FORCE_OBJECT);
-    exit();
+    // Check endpoint: fail
+    showError("Invalid endpoint", 400);
+} else {
+    // Email
+    $userId = $uri[2];
+
+    // REST API name
+    $function = $uri[3];
+
+    // GET, POST, PUT, DELETE
+    $requestMethod = $_SERVER["REQUEST_METHOD"];
+
+    // Handle the API request
+    $controller = new RequestHandler($dbConnection, $requestMethod, $userId, $function);
+    $controller->processRequest();
+    $controller->close();
 }
-
-// Email
-$userId = $uri[2];
-
-// REST API name
-$function = $uri[3];
-
-// GET, POST, PUT, DELETE
-$requestMethod = $_SERVER["REQUEST_METHOD"];
-
-// Handle the API request
-$controller = new RequestHandler($dbConnection, $requestMethod, $userId, $function);
-$controller->processRequest();
-$controller->close();
