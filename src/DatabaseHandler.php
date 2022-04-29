@@ -20,6 +20,15 @@ class DatabaseHandler {
         return $this->db->query($sql);
     }
 
+    public function userExists(string $email, string $password) : bool {
+        $email = $this->db->real_escape_string($email);
+        $password = hash("sha256", $password);
+
+        $this->db->begin_transaction();
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
+        return $result->fetch_column("total") == 1;
+    }
+
     public function registerUser(string $fiscalCode, string $firstName, string $lastName, string $email, string $password) : void {
         if(strlen($fiscalCode) != 16) {
             throw new \LengthException("Mismatched fiscal code length, it must be 16");
