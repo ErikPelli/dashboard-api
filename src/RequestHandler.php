@@ -21,7 +21,7 @@ class RequestHandler {
         return json_decode(file_get_contents('php://input'), true);
     }
 
-    private function user() {
+    protected function user() {
         switch ($this->requestMethod) {
             case HTTP_GET:
                 // Get user informatiom
@@ -44,7 +44,10 @@ class RequestHandler {
     }
 
     public function processRequest() {
-        if (\method_exists($this, $this->function)) {
+        if (
+            \method_exists($this, $this->function) and
+            (new \ReflectionMethod($this, $this->function))->isProtected()
+        ) {
             // Variable function
             try {
                 $result = $this->$this->function();
