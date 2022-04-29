@@ -27,12 +27,13 @@ class RequestHandler {
                 // Login
             case HTTP_PUT:
                 // Register
-                $full = $this->data["fullname"];
+                $firstName = $this->data["firstName"];
+                $lastName = $this->data["lastName"];
                 $email = $this->data["email"];
                 $username = $this->data["username"];
                 $password = $this->data["password"];
 
-                $result = $this->db->registerUser($full, $email, $username, $password);
+                $result = $this->db->registerUser($firstName, $lastName, $email, $username, $password);
                 $error = $this->db->getError();
                 if ($error) {
                     showError($error, HTTP_NOT_ACCEPTABLE);

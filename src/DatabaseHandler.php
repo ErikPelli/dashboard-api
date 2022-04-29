@@ -21,8 +21,8 @@ class DatabaseHandler {
         $sql = "SELECT firstName, lastName FROM PersonalData JOIN Employee ON PersonalData.fiscalCode = Employee.fiscalCode WHERE email = $email";
         return $this->db->query($sql);
     }
-    public function registerUser($){
-
+    public function registerUser($firstName, $lastName, $email, $username, $password){
+        $sql = "INSERT INTO";    //finire la query
     }
 
     public function close() {
