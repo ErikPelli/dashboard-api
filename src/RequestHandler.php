@@ -18,7 +18,7 @@ class RequestHandler {
     }
 
     private function parseJsonData() {
-        return json_decode(file_get_contents('php://input'));
+        return json_decode(file_get_contents('php://input'), true);
     }
 
     private function user() {
@@ -37,7 +37,7 @@ class RequestHandler {
                 $result = $this->db->registerUser($full, $email, $username, $password);
                 $error = $this->db->error();
                 if ($error) {
-                    throw new Exception($error);
+                    throw new Exception($error, HTTP_BAD_REQUEST);
                 }
                 return $result;
         }
@@ -54,7 +54,7 @@ class RequestHandler {
                     showResult($result);
                 }
             } catch (Exception $e) {
-                showError($e->getMessage(), HTTP_BAD_REQUEST);
+                showError($e->getMessage(), $e->getCode());
             }
         }
     }
