@@ -29,17 +29,16 @@ class RequestHandler {
                 // Login
             case HTTP_PUT:
                 // Register
-                $fiscalCode = $this->data["fiscalCode"];
-                $firstName = $this->data["firstName"];
-                $lastName = $this->data["lastName"];
-                $email = $this->data["email"];
-                $username = $this->data["username"];
-                $password = $this->data["password"];
-
-                $result = $this->db->registerUser($fiscalCode, $firstName, $lastName, $email, $username, $password);
+                $result = $this->db->registerUser(
+                    $this->data["fiscalCode"],
+                    $this->data["firstName"],
+                    $this->data["lastName"],
+                    $this->data["email"],
+                    $this->data["password"]
+                );
                 $error = $this->db->error();
                 if ($error) {
-                    throw new Exception($error, HTTP_BAD_REQUEST);
+                    throw new Exception($error);
                 }
                 return $result;
         }
@@ -60,7 +59,9 @@ class RequestHandler {
                     showResult($result);
                 }
             } catch (Exception $e) {
-                showError($e->getMessage(), $e->getCode());
+                // BAD_REQUEST is default HTTP error
+                $code = $e->getCode();
+                showError($e->getMessage(), ($code != 0) ? $code : HTTP_BAD_REQUEST);
             }
         }
     }
