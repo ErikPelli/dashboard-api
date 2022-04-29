@@ -29,12 +29,14 @@ class RequestHandler {
                 // Login
             case HTTP_PUT:
                 // Register
-                $full = $this->data["fullname"];
+                $fiscalCode = $this->data["fiscalCode"];
+                $firstName = $this->data["firstName"];
+                $lastName = $this->data["lastName"];
                 $email = $this->data["email"];
                 $username = $this->data["username"];
                 $password = $this->data["password"];
 
-                $result = $this->db->registerUser($full, $email, $username, $password);
+                $result = $this->db->registerUser($fiscalCode, $firstName, $lastName, $email, $username, $password);
                 $error = $this->db->error();
                 if ($error) {
                     throw new Exception($error, HTTP_BAD_REQUEST);
