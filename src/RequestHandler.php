@@ -19,9 +19,38 @@ class RequestHandler {
         return json_decode(file_get_contents('php://input'));
     }
 
+    private function user() {
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get user informatiom
+            case HTTP_POST:
+                // Login
+            case HTTP_PUT:
+                // Register
+                $full = $this->data["fullname"];
+                $email = $this->data["email"];
+                $username = $this->data["username"];
+                $password = $this->data["password"];
+
+                $result = $this->db->registerUser($full, $email, $username, $password);
+                $error = $this->db->getError();
+                if ($error) {
+                    showError($error, HTTP_NOT_ACCEPTABLE);
+                } else {
+                    http_response_code(HTTP_SUCCESS);
+                    $error = array(
+                        "success" => true,
+                        "result" => $result,
+                    );
+                    echo json_encode($error, JSON_FORCE_OBJECT);
+                }
+        }
+    }
+
     public function processRequest() {
     }
 
     public function close() {
+        $this->db->close();
     }
 }
