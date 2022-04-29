@@ -4,10 +4,10 @@ require "src/handlers.php";
 
 header("Content-Type: application/json");
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = explode('/', $uri);
+$uri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+$uri = explode("/", $uri);
 
-if ($uri[1] !== 'api' || !isset($uri[2])) {
+if ($uri[1] !== "api" || !isset($uri[2])) {
     // Check endpoint: fail
     Src\showError("Invalid endpoint", HTTP_BAD_REQUEST);
 } else {
