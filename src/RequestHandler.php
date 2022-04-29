@@ -2,6 +2,8 @@
 
 namespace Src;
 
+use Exception;
+
 class RequestHandler {
     private $db;
     private $requestMethod;
@@ -33,21 +35,28 @@ class RequestHandler {
                 $password = $this->data["password"];
 
                 $result = $this->db->registerUser($full, $email, $username, $password);
-                $error = $this->db->getError();
+                $error = $this->db->error();
                 if ($error) {
-                    showError($error, HTTP_NOT_ACCEPTABLE);
-                } else {
-                    http_response_code(HTTP_SUCCESS);
-                    $error = array(
-                        "success" => true,
-                        "result" => $result,
-                    );
-                    echo json_encode($error, JSON_FORCE_OBJECT);
+                    throw new Exception($error);
                 }
+                return $result;
         }
     }
 
     public function processRequest() {
+        if (\method_exists($this, $this->function)) {
+            // Variable function
+            try {
+                $result = $this->$this->function();
+                if ($result == null) {
+                    showError("Method not supported", HTTP_BAD_REQUEST);
+                } else {
+                    showResult($result);
+                }
+            } catch (Exception $e) {
+                showError($e->getMessage(), HTTP_BAD_REQUEST);
+            }
+        }
     }
 
     public function close() {
