@@ -57,6 +57,20 @@ class DatabaseHandler {
             $this->db->rollback();
         }
     }
+    public function setPassword($email, $password){
+        $email = $this->db->real_escape_string($email);
+        if($password != null){
+            $password = hash("sha256", $password);
+        }
+        $this->db->begin_transaction();
+        try {
+            //PASSWORD'S UPDATE
+            $this->db->query("UPDATE User SET password = '$password' WHERE email= '$email'");
+        } catch (\mysqli_sql_exception $exception) {
+            $this->db->rollback();
+        }
+
+    }
 
     public function close(): void {
         $this->db->close();
