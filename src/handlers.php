@@ -15,7 +15,7 @@ define('HTTP_DELETE', "DELETE");
 /**
  * Result to return in API handlers when the method is not defined.
  */
-class UnsupportedMethod extends \Exception {
+class UnsupportedMethodException extends \Exception {
     public function __construct() {
         parent::__construct("Method not supported", HTTP_METHOD_NOT_ALLOWED);
     }

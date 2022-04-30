@@ -9,7 +9,7 @@ class DatabaseHandler {
         $this->db = $db;
     }
 
-    public function error() : null|string {
+    public function error(): null|string {
         $err = $this->db->error;
         return ($err == "") ? null : $err;
     }
@@ -20,24 +20,24 @@ class DatabaseHandler {
         return $this->db->query($sql);
     }
 
-    public function userExists(string $email, string $password) : bool {
+    public function userExists(string $email, string $password): bool {
         $email = $this->db->real_escape_string($email);
         $password = hash("sha256", $password);
 
         $this->db->begin_transaction();
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
-        return $result->fetch_column("total") == 1;
+        return $result->fetch_column() == 1;
     }
 
-    public function registerUser(string $fiscalCode, string $firstName, string $lastName, string $email, string $password) : void {
-        if(strlen($fiscalCode) != 16) {
+    public function registerUser(string $fiscalCode, string $firstName, string $lastName, string $email, string $password): void {
+        if (strlen($fiscalCode) != 16) {
             throw new \LengthException("Mismatched fiscal code length, it must be 16");
         }
 
-        if(empty($fiscalCode) || empty($email)) {
+        if (empty($fiscalCode) || empty($email)) {
             throw new \InvalidArgumentException("Some parameters are empty");
         }
-        
+
         // Personal data
         $fiscalCode = $this->db->real_escape_string($fiscalCode);
         $firstName = $this->db->real_escape_string($firstName);
@@ -58,7 +58,7 @@ class DatabaseHandler {
         }
     }
 
-    public function close() : void {
+    public function close(): void {
         $this->db->close();
     }
 }
