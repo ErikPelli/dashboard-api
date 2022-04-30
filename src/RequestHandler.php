@@ -2,6 +2,16 @@
 
 namespace Src;
 
+/**
+ * RequestHandler is a class that handles an HTTP request to the /api REST APIs.
+ * To use it, initialize a new object with the right parameters in the constructor
+ * and then call the processRequest method.
+ * 
+ * @package Src
+ * @author Erik Pellizzon <https://github.com/ErikPelli>
+ * @author Ilias El Ikhbari <https://github.com/BlackJekko>
+ * @access public
+ */
 class RequestHandler {
     private DatabaseHandler $db;
     private string $requestMethod;
@@ -37,6 +47,10 @@ class RequestHandler {
         }
     }
 
+    /**
+     * Check if the JSON input contains the required fields in keys array.
+     * @param keys string array
+     */
     private function jsonKeysOK(array $keys): bool {
         foreach ($keys as $key) {
             if (!array_key_exists($key, $this->data)) {
@@ -51,22 +65,45 @@ class RequestHandler {
      * 
      * Get data about a specific user:
      *  GET /api/user
-     *  {""} ---> {""}
+     *    {
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result":
+     *    }
      * 
      * Check login data of an existent user:
      *  POST /api/user
-     *  {"email": string, "password": string}
-     *      Result:
-     *      {
-     *          "success": bool,
-     *          "error": undefined | string,
-     *          "result": {"exists":bool} | {}
-     *      }
+     *    {
+     *        "email": string,
+     *        "password": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {"exists":bool} | {}
+     *    }
      * 
      * Register a new user:
-     *  POST /api/user
+     *  PUT /api/user
+     *    { 
+     *        "fiscalCode": string,
+     *        "firstName: string,
+     *        "lastName": string,
+     *        "email": string,
+     *        "password": string
+     *   }
+     *  Result:
+     *   {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
      * 
-     * @return mixed any value that will encoded into JSON.
+     * @return mixed any value that will encoded into JSON "result" field.
      * @throws UnsupportedMethodException current REST method not supported.
      */
     protected function user(): mixed {
