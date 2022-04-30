@@ -84,7 +84,7 @@ class RequestHandler {
      *    {
      *        "success": bool,
      *        "error": undefined | string,
-     *        "result": {"exists":bool} | {}
+     *        "result": {"exists": bool} | {}
      *    }
      * 
      * Register a new user:
@@ -139,19 +139,33 @@ class RequestHandler {
         return $result;
     }
 
-    protected function settings(): mixed {
+    protected function password(): mixed {
+        // POST Set new password
+        // DELETE Reset password
+        // GET Check if password is set
     }
 
     protected function noncompliances(): mixed {
+        // GET Get non compliances list
+        // POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
+        // PUT Get available non compliance types
     }
 
     protected function noncompliance(): mixed {
+        // GET available non compliance types
+        // PUT add new noncompliance instance
+        // POST details about a noncompliance instance
     }
 
     protected function tickets(): mixed {
+        // GET all tickets
+        // POST get open tickets for every day last month. + Currently today not closed tickets.
     }
 
     protected function ticket(): mixed {
+        // GET ticket details
+        // POST answer to ticket
+        // DELETE close ticket
     }
 
     /**

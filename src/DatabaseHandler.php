@@ -15,6 +15,7 @@ class DatabaseHandler {
     }
 
     public function infoUser(string $email) {
+        // TODO
         $sql = "SELECT firstName, lastName
         FROM PersonalData JOIN Employee ON PersonalData.fiscalCode = Employee.fiscalCode WHERE email = $email";
         return $this->db->query($sql);
@@ -24,7 +25,6 @@ class DatabaseHandler {
         $email = $this->db->real_escape_string($email);
         $password = hash("sha256", $password);
 
-        $this->db->begin_transaction();
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
         return $result->fetch_column() == 1;
     }
