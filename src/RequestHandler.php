@@ -110,6 +110,17 @@ class RequestHandler {
         switch ($this->requestMethod) {
             case HTTP_GET:
                 // Get user information
+                $this->jsonKeysOK(array("email"));
+                $data = $this->db->infoUser(
+                    $this->data["email"],
+                );
+                $this->checkErrorThrowException();
+                $result = array(
+                    "firstName" => $data["fn"],
+                    "lastName" => $data["ln"],
+                    "fiscalCode" => $data["fc"]
+                );
+                break;
             case HTTP_POST:
                 // Login
                 $this->jsonKeysOK(array("email", "password"));

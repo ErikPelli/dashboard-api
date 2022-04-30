@@ -2,6 +2,8 @@
 
 namespace Src;
 
+use Exception;
+
 class DatabaseHandler {
     private \mysqli $db;
 
@@ -14,19 +16,28 @@ class DatabaseHandler {
         return ($err == "") ? null : $err;
     }
 
-    public function infoUser(string $email) {
+    public function infoUser(string $email): array {
         $email = $this->db->real_escape_string($email);
-        $sql = "SELECT firstName, lastName, User.fiscalCode
-        FROM PersonalData JOIN User ON PersonalData.fiscalCode = User.fiscalCode
-        WHERE email = '$email'";
-        return $this->db->query($sql);
+        $result = $this->db->query(
+            "SELECT firstName AS fn, lastName AS ln, PersonalData.fiscalCode AS fc
+            FROM PersonalData JOIN User ON PersonalData.fiscalCode = User.fiscalCode
+            WHERE email = '$email'"
+        );
+
+        if ($result === false) {
+            return null;
+        } else if($result->num_rows != 1) {
+            throw new \LogicException("Invalid user database rows");
+        } else {
+            return $result->fetch_assoc();
+        }
     }
 
     public function userExists(string $email, string $password): bool {
         $email = $this->db->real_escape_string($email);
         $password = hash("sha256", $password);
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
-        return $result->fetch_column() == 1;
+        return $result !== false && $result->fetch_column() == 1;
     }
 
     public function registerUser(string $fiscalCode, string $firstName, string $lastName, string $email, string $password): void {
@@ -57,7 +68,8 @@ class DatabaseHandler {
             $this->db->rollback();
         }
     }
-    public function setPassword($email, $password = null) {
+
+    public function setPassword($email, $password = null): void {
         $email = $this->db->real_escape_string($email);
         if ($password == null) {
             $password = "NULL";
