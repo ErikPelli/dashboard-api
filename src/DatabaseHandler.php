@@ -15,16 +15,16 @@ class DatabaseHandler {
     }
 
     public function infoUser(string $email) {
-        // TODO
-        $sql = "SELECT firstName, lastName
-        FROM PersonalData JOIN Employee ON PersonalData.fiscalCode = Employee.fiscalCode WHERE email = $email";
+        $email = $this->db->real_escape_string($email);
+        $sql = "SELECT firstName, lastName, User.fiscalCode
+        FROM PersonalData JOIN User ON PersonalData.fiscalCode = User.fiscalCode
+        WHERE email = '$email'";
         return $this->db->query($sql);
     }
 
     public function userExists(string $email, string $password): bool {
         $email = $this->db->real_escape_string($email);
         $password = hash("sha256", $password);
-
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
         return $result->fetch_column() == 1;
     }
