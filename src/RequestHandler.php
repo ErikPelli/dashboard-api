@@ -2,8 +2,6 @@
 
 namespace Src;
 
-class UnsupportedMethod {}
-
 class RequestHandler {
     private DatabaseHandler $db;
     private string $requestMethod;
@@ -17,7 +15,7 @@ class RequestHandler {
         $this->data = $this->parseJsonData();
     }
 
-    private function parseJsonData() : string {
+    private function parseJsonData(): string {
         return json_decode(file_get_contents('php://input'), true);
     }
 
@@ -28,7 +26,7 @@ class RequestHandler {
         }
     }
 
-    protected function user() : mixed {
+    protected function user(): mixed {
         switch ($this->requestMethod) {
             case HTTP_GET:
                 // Get user information
@@ -54,12 +52,30 @@ class RequestHandler {
                 $result = null;
                 break;
             default:
-                $result = new UnsupportedMethod(); 
+                throw new UnsupportedMethod();
         }
         return $result;
     }
 
-    public function processRequest() : void {
+    protected function settings(): mixed {
+    }
+
+    protected function noncompliances(): mixed {
+    }
+
+    protected function noncompliance(): mixed {
+    }
+
+    protected function tickets(): mixed {
+    }
+
+    protected function ticket(): mixed {
+    }
+
+    /**
+     * Process an HTTP request and print the JSON result.
+     */
+    public function processRequest(): void {
         if (
             \method_exists($this, $this->function) and
             (new \ReflectionMethod($this, $this->function))->isProtected()
@@ -68,9 +84,7 @@ class RequestHandler {
                 // Variable function
                 $apiFunction = $this->function;
                 $result = $apiFunction();
-                if ($result instanceof UnsupportedMethod) {
-                    showError("Method not supported", HTTP_METHOD_NOT_ALLOWED);
-                } else if ($result == null) {
+                if ($result == null) {
                     showResult();
                 } else {
                     showResult($result);
@@ -83,7 +97,10 @@ class RequestHandler {
         }
     }
 
-    public function close() : void {
+    /**
+     * Clean current database connession.
+     */
+    public function close(): void {
         $this->db->close();
     }
 }
