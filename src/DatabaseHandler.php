@@ -16,7 +16,7 @@ class DatabaseHandler {
         return ($err == "") ? null : $err;
     }
 
-    public function infoUser(string $email): array {
+    public function getinfoUser(string $email): array {
         $email = $this->db->real_escape_string($email);
         $result = $this->db->query(
             "SELECT firstName AS fn, lastName AS ln, PersonalData.fiscalCode AS fc
@@ -26,7 +26,7 @@ class DatabaseHandler {
 
         if ($result === false) {
             return array();
-        } else if($result->num_rows != 1) {
+        } else if ($result->num_rows != 1) {
             throw new \LogicException("Invalid user database rows");
         } else {
             return $result->fetch_assoc();
@@ -89,7 +89,25 @@ class DatabaseHandler {
             $this->db->rollback();
         }
     }
+    public function getInfoSettings(string $email) {
+        $email = $this->db->real_escape_string($email);
+        $result = $this->db->query("SELECT job, role, company FROM Employee JOIN User Where email = '$email'");
+        if ($result === false) {
+            return array();
+        } else if ($result->num_rows != 1) {
+            throw new \LogicException("Invalid user database rows");
+        } else {
+            return $result->fetch_assoc();
+        }
+    }
+    public function setInfoSettings(string $email, string $job, string $company, string $role) {
+        $email = $this->db->real_escape_string($email);
+        $job = $this->db->real_escape_string($job);
+        $company = $this->db->real_escape_string($company);
+        $role = $this->db->real_escape_string($role);
+        
 
+    }
     public function isPasswordSet(string $email): bool {
         $email = $this->db->real_escape_string($email);
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password IS NULL");
