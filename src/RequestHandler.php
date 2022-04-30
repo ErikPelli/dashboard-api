@@ -179,7 +179,7 @@ class RequestHandler {
             try {
                 // Variable function
                 $apiFunction = $this->function;
-                $result = $apiFunction();
+                $result = $this->$apiFunction();
                 if ($result == null) {
                     showResult();
                 } else {
