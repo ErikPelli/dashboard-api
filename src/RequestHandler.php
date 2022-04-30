@@ -145,6 +145,12 @@ class RequestHandler {
         // GET Check if password is set
     }
 
+    protected function settings(): mixed {
+        // GET Get current settings (department, job, role)
+        // POST Set new settings
+        // DELETE Set default settings
+    }
+
     protected function noncompliances(): mixed {
         // GET Get non compliances list
         // POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
