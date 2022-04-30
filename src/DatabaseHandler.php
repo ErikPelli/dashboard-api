@@ -89,7 +89,7 @@ class DatabaseHandler {
             $this->db->rollback();
         }
     }
-    public function getInfoSettings(string $email) {
+    public function getInfoSettings(string $email): array {
         $email = $this->db->real_escape_string($email);
         $result = $this->db->query("SELECT job, role, company FROM Employee JOIN User Where email = '$email'");
         if ($result === false) {
@@ -100,7 +100,7 @@ class DatabaseHandler {
             return $result->fetch_assoc();
         }
     }
-    public function setInfoSettings(string $email, string $job=null, string $company=null, string $role=null) {
+    public function setInfoSettings(string $email, string $job = null, string $company = null, string $role = null): void {
         $email = $this->db->real_escape_string($email);
         $job = $this->db->real_escape_string($job);
         $company = $this->db->real_escape_string($company);
@@ -124,7 +124,10 @@ class DatabaseHandler {
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password IS NULL");
         return $result !== false && $result->fetch_column() == 1;
     }
-
+    public function getNoncompliancesList():array{
+        //TODO
+        return array();
+    }
     public function close(): void {
         $this->db->close();
     }
