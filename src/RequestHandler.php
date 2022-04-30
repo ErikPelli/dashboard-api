@@ -111,9 +111,7 @@ class RequestHandler {
             case HTTP_GET:
                 // Get user information
                 $this->jsonKeysOK(array("email"));
-                $data = $this->db->infoUser(
-                    $this->data["email"],
-                );
+                $data = $this->db->infoUser($this->data["email"]);
                 $this->checkErrorThrowException();
                 $result = array(
                     "firstName" => $data["fn"],
@@ -124,10 +122,7 @@ class RequestHandler {
             case HTTP_POST:
                 // Login
                 $this->jsonKeysOK(array("email", "password"));
-                $exists = $this->db->userExists(
-                    $this->data["email"],
-                    $this->data["password"]
-                );
+                $exists = $this->db->userExists($this->data["email"], $this->data["password"]);
                 $this->checkErrorThrowException();
                 $result = array("exists" => $exists);
                 break;
@@ -151,9 +146,32 @@ class RequestHandler {
     }
 
     protected function password(): mixed {
-        // POST Set new password
-        // DELETE Reset password
-        // GET Check if password is set
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Check if password is set
+                $this->jsonKeysOK(array("email"));
+                $set = $this->db->isPasswordSet($this->data["email"]);
+                $this->checkErrorThrowException();
+                $result = array("isSet" => $set);
+                break;
+            case HTTP_POST:
+                // Set new password
+                $this->jsonKeysOK(array("email", "password"));
+                $this->db->setPassword($this->data["email"], $this->data["password"]);
+                $this->checkErrorThrowException();
+                $result = null;
+                break;
+            case HTTP_DELETE:
+                // Reset password
+                $this->jsonKeysOK(array("email"));
+                $this->db->setPassword($this->data["email"]);
+                $this->checkErrorThrowException();
+                $result = null;
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     protected function settings(): mixed {

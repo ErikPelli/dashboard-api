@@ -25,7 +25,7 @@ class DatabaseHandler {
         );
 
         if ($result === false) {
-            return null;
+            return array();
         } else if($result->num_rows != 1) {
             throw new \LogicException("Invalid user database rows");
         } else {
@@ -69,7 +69,7 @@ class DatabaseHandler {
         }
     }
 
-    public function setPassword($email, $password = null): void {
+    public function setPassword(string $email, string $password = null): void {
         $email = $this->db->real_escape_string($email);
         if ($password == null) {
             $password = "NULL";
@@ -88,6 +88,12 @@ class DatabaseHandler {
         } catch (\mysqli_sql_exception $exception) {
             $this->db->rollback();
         }
+    }
+
+    public function isPasswordSet(string $email): bool {
+        $email = $this->db->real_escape_string($email);
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password IS NULL");
+        return $result !== false && $result->fetch_column() == 1;
     }
 
     public function close(): void {
