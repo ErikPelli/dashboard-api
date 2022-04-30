@@ -15,16 +15,16 @@ class DatabaseHandler {
     }
 
     public function infoUser(string $email) {
-        // TODO
-        $sql = "SELECT firstName, lastName
-        FROM PersonalData JOIN Employee ON PersonalData.fiscalCode = Employee.fiscalCode WHERE email = $email";
+        $email = $this->db->real_escape_string($email);
+        $sql = "SELECT firstName, lastName, User.fiscalCode
+        FROM PersonalData JOIN User ON PersonalData.fiscalCode = User.fiscalCode
+        WHERE email = '$email'";
         return $this->db->query($sql);
     }
 
     public function userExists(string $email, string $password): bool {
         $email = $this->db->real_escape_string($email);
         $password = hash("sha256", $password);
-
         $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password='$password'");
         return $result->fetch_column() == 1;
     }
@@ -53,6 +53,26 @@ class DatabaseHandler {
             $this->db->query("INSERT INTO Employee(fiscalCode,job,role,company,department) VALUES('$fiscalCode','Java developer','programmer','IT111111111',1)");
             $this->db->query("INSERT INTO User(fiscalCode,email,password) VALUES('$fiscalCode','$email','$password')");
             $this->db->commit();
+        } catch (\mysqli_sql_exception $exception) {
+            $this->db->rollback();
+        }
+    }
+    public function setPassword($email, $password = null) {
+        $email = $this->db->real_escape_string($email);
+        if ($password == null) {
+            $password = "NULL";
+        } else {
+            $password = "'" . hash("sha256", $password) . "'";
+        }
+        $this->db->begin_transaction();
+        try {
+            $this->db->query("UPDATE User SET password = $password WHERE email= '$email'");
+            if ($this->db->affected_rows == 1) {
+                $this->db->commit();
+            } else {
+                $this->db->rollback();
+                throw new \UnexpectedValueException("Email not found or more rows affected");
+            }
         } catch (\mysqli_sql_exception $exception) {
             $this->db->rollback();
         }
