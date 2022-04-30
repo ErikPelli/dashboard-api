@@ -100,13 +100,24 @@ class DatabaseHandler {
             return $result->fetch_assoc();
         }
     }
-    public function setInfoSettings(string $email, string $job, string $company, string $role) {
+    public function setInfoSettings(string $email, string $job=null, string $company=null, string $role=null) {
         $email = $this->db->real_escape_string($email);
         $job = $this->db->real_escape_string($job);
         $company = $this->db->real_escape_string($company);
         $role = $this->db->real_escape_string($role);
-        
+        //TODO if null set default value
 
+        try {
+            $this->db->query("UPDATE Employee SET job='$job', company='$company', role='$role' WHERE fiscalCode=(SELECT fiscalCode FROM User WHERE email='$email')");
+            if ($this->db->affected_rows == 1) {
+                $this->db->commit();
+            } else {
+                $this->db->rollback();
+                throw new \UnexpectedValueException("Email not found or more rows affected");
+            }
+        } catch (\mysqli_sql_exception $exception) {
+            $this->db->rollback();
+        }
     }
     public function isPasswordSet(string $email): bool {
         $email = $this->db->real_escape_string($email);
