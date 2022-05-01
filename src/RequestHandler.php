@@ -66,12 +66,17 @@ class RequestHandler {
      * Get data about a specific user:
      *  GET /api/user
      *    {
+     *        "email": string
      *    }
      *  Result:
      *    {
      *        "success": bool,
      *        "error": undefined | string,
-     *        "result":
+     *        "result": {
+     *                      "firstName": string,
+     *                      "lastName": string,
+     *                      "fiscalCode": string
+     *                  } | {}
      *    }
      * 
      * Check login data of an existent user:
@@ -84,7 +89,9 @@ class RequestHandler {
      *    {
      *        "success": bool,
      *        "error": undefined | string,
-     *        "result": {"exists": bool} | {}
+     *        "result": {
+     *                      "exists": bool
+     *                  } | {}
      *    }
      * 
      * Register a new user:
@@ -141,6 +148,51 @@ class RequestHandler {
         return $result;
     }
 
+    /**
+     * Handle the /api/password REST endpoint.
+     * 
+     * Check if password is set (if it has been reset, result is false):
+     *  GET /api/password
+     *    {
+     *        "email": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      "isSet": bool
+     *                  } | {}
+     *    }
+     * 
+     * Set a new password:
+     *  POST /api/password
+     *    {
+     *        "email": string,
+     *        "password": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * Reset the current password:
+     *  DELETE /api/password
+     *    { 
+     *        "email": string
+     *   }
+     *  Result:
+     *   {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function password(): mixed {
         switch ($this->requestMethod) {
             case HTTP_GET:
@@ -222,15 +274,149 @@ class RequestHandler {
         // POST details about a noncompliance instance
     }
 
+    /**
+     * Handle the /api/tickets REST endpoint.
+     * 
+     * Get all tickets by page:
+     *  GET /api/tickets
+     *    {
+     *        "resultsPerPage": int,
+     *        "pageNumber": int
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": [
+     *                      {
+     *                          "vatNum": string,
+     *                          "nonComplianceCode": int
+     *                      }
+     *                  ] | {}
+     *    }
+     * 
+     * Return the total of all tickets from the start and
+     * statistics about the tickets in the last 30 days:
+     *  POST /api/tickets
+     *    {}
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      "totalTickets": int,
+     *                      "days": [
+     *                                  {
+     *                                      "date": string (YYYY-MM-DD),
+     *                                      "counter": int
+     *                                  }  
+     *                              ]
+     *                  } | {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function tickets(): mixed {
-        // GET all tickets
-        // POST get open tickets for every day last month. + Currently today not closed tickets.
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get all tickets
+                $this->jsonKeysOK(array("resultsPerPage", "pageNumber"));
+                // Array of vatNum and nonComplianceCode
+                $result = $this->db->getTickets($this->data["resultsPerPage"], $this->data["pageNumber"]);
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_POST:
+                // Return statistics about the tickets in the last 30 days
+                // totalTickets, days: array of date and counter
+                $result = $this->db->getTicketStats();
+                $this->checkErrorThrowException();
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
+    /**
+     * Handle the /api/ticket REST endpoint.
+     * 
+     * Get details about a single ticket:
+     *  GET /api/ticket
+     *    {
+     *        "vat": string,
+     *        "nonCompliance": int
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      "customerCompanyName": string,
+     *                      "customerCompanyAddress": string,
+     *                      "shippingCode": string,
+     *                      "productQuantity": int,
+     *                      "problemDescription": string,
+     *                      "status": "new" | "progress" | "closed"
+     *                  } | {}
+     *    }
+     * 
+     * Set an answer to a ticket:
+     *  POST /api/ticket
+     *    {
+     *        "vat": string,
+     *        "nonCompliance": int,
+     *        "answer": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * Close a ticket:
+     *  DELETE /api/ticket
+     *    { 
+     *        "vat": string,
+     *        "nonCompliance": int
+     *   }
+     *  Result:
+     *   {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function ticket(): mixed {
-        // GET ticket details
-        // POST answer to ticket
-        // DELETE close ticket
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get details about a single ticket
+                $this->jsonKeysOK(array("vat", "nonCompliance"));
+                // customerCompanyName, customerCompanyAddress, shippingCode, productQuantity, problemDescription, status
+                // status can be new, progress or closed
+                $result = $this->db->getTicketDetails($this->data["vat"], $this->data["nonCompliance"]);
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_POST:
+                // Set an answer to a ticket
+                $this->jsonKeysOK(array("vat", "nonCompliance", "answer"));
+                $this->db->answerToTicket($this->data["vat"], $this->data["nonCompliance"], $this->data["answer"]);
+                $result = null;
+                break;
+            case HTTP_DELETE:
+                // Close a ticket
+                $this->jsonKeysOK(array("vat", "nonCompliance"));
+                $this->db->closeTicket($this->data["vat"], $this->data["nonCompliance"]);
+                $result = null;
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     /**
