@@ -40,7 +40,7 @@ class RequestHandler {
      * Check if there is a DB error.
      * @throws Exception if there is an error.
      */
-    private function checkErrorThrowException() {
+    private function checkErrorThrowException(): void {
         $error = $this->db->error();
         if ($error) {
             throw new \Exception($error);
@@ -50,14 +50,14 @@ class RequestHandler {
     /**
      * Check if the JSON input contains the required fields in keys array.
      * @param keys string array
+     * @throws InvalidArgumentException if required key is not present.
      */
-    private function jsonKeysOK(array $keys): bool {
+    private function jsonKeysOK(array $keys): void {
         foreach ($keys as $key) {
             if (!array_key_exists($key, $this->data)) {
                 throw new \InvalidArgumentException("Invalid JSON input parameters");
             }
         }
-        return true;
     }
 
     /**
@@ -111,13 +111,9 @@ class RequestHandler {
             case HTTP_GET:
                 // Get user information
                 $this->jsonKeysOK(array("email"));
-                $data = $this->db->getInfoUser($this->data["email"]);
+                // Result array keys: firstName, lastName, fiscalCode
+                $result = $this->db->getInfoUser($this->data["email"]);
                 $this->checkErrorThrowException();
-                $result = array(
-                    "firstName" => $data["fn"],
-                    "lastName" => $data["ln"],
-                    "fiscalCode" => $data["fc"]
-                );
                 break;
             case HTTP_POST:
                 // Login
@@ -175,23 +171,39 @@ class RequestHandler {
     }
 
     protected function settings(): mixed {
-        // GET Get current settings (department, job, role)
-        // POST Set new settings
-        // DELETE Set default settings
         switch ($this->requestMethod) {
             case HTTP_GET:
-                // GET Get current settings (department, job, role)
-                //TODO
+                // Get current settings (department, job, role)
                 $this->jsonKeysOK(array("email"));
-                $get = $this->db->getInfoSettings($this->data["email"]);
+                $result = $this->db->getInfoSettings($this->data["email"]);
                 $this->checkErrorThrowException();
-                $result = $get;
                 break;
             case HTTP_POST:
-                // POST Set new settings
+                // Set new settings
+                $this->jsonKeysOK(array("email"));
+                $options = array();
+                if(array_key_exists("job", $this->data)) {
+                    $this->data["job"] = $this->data["job"];
+                }
+                if(array_key_exists("role", $this->data)) {
+                    $this->data["role"] = $this->data["role"];
+                }
+                if(array_key_exists("company", $this->data)) {
+                    $this->data["company"] = $this->data["company"];
+                }
+                $this->db->setInfoSettings($this->data["email"], $options);
+                $result = null;
                 break;
             case HTTP_DELETE:
-                // DELETE Set default settings
+                // Set default settings
+                $this->jsonKeysOK(array("email"));
+                $this->db->setInfoSettings($this->data["email"], array(
+                    "job" => $_ENV['DEFAULT_JOB'],
+                    "role" => $_ENV['DEFAULT_ROLE'],
+                    "department" => $_ENV['DEFAULT_DEPARTMENT']
+                ));
+                $result = null;
+                break;
             default:
                 throw new UnsupportedMethodException();
         }
