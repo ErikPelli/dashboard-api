@@ -136,23 +136,38 @@ class DatabaseHandler {
     }
 
     /******************\
-     * NONCOMPLIANCES *        //TODO POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
+     * NONCOMPLIANCES *
     \******************/
 
-    public function getNoncompliances(): array {
-        $result = $this->db->query("SELECT code FROM NonCompliance ORDER BY date DESC");  ///TOCHECK code or *
-        if ($result === false) {
-            return array();
-        } else {
-            return $result->fetch_assoc();
+    public function getNonCompliances(int $resultsPerPage, int $page): array {
+        if ($resultsPerPage <= 0 || $page <= 0) {
+            throw new \LengthException("Invalid page visualization arguments");
         }
+        $offset = $resultsPerPage * $page;
+
+        $nonCompliances = $this->db->query(
+            "SELECT code AS nonComplianceCode
+            FROM NonCompliance
+            ORDER BY date DESC
+            LIMIT {$resultsPerPage} OFFSET {$offset}"
+        );
+
+        $result = array();
+        if ($nonCompliances !== false) {
+            while ($row = $nonCompliances->fetch_assoc()) {
+                $tickets[] = $row;
+            }
+        }
+        return $result;
     }
 
-    /*****************\
-     * NONCOMPLIANCE *
-    \*****************/
+    public function getNonCompliancesStats(): array {
+        // TODO
+        $result = array();
+        return $result;
+    }
 
-    public function getPossibleNoncompliances(): array {
+    public function getPossibleNonCompliances(): array {
         $nonCompliances = $this->db->query("SELECT code, name, description FROM NonComplianceList");
         $result = array();
         if ($nonCompliances !== false) {
@@ -162,6 +177,10 @@ class DatabaseHandler {
         }
         return $result;
     }
+
+    /*****************\
+     * NONCOMPLIANCE *
+    \*****************/
 
     public function addNoncompliance(string $code, string $lot = null, int $processOrigin, int $type, string $repEmployee = null, string $date, string $comment = null): void {
 
@@ -184,6 +203,12 @@ class DatabaseHandler {
         $comment = $this->db->real_escape_string($comment);
 
         $this->db->query("INSERT INTO NonCompliance(code,lot,processOrigin,type,repEmployee,date,comment) VALUES('$code','$lot',$processOrigin,$type,'$repEmployee','$comment')");
+    }
+
+    public function getNonComplianceDetails() {
+    }
+
+    public function editNonCompliance() {
     }
 
     /***********\
