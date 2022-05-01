@@ -136,17 +136,53 @@ class DatabaseHandler {
     }
 
     /******************\
-     * NONCOMPLIANCES *
+     * NONCOMPLIANCES *        //TODO POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
     \******************/
 
-    public function getNoncompliancesList(): array {
-        //TODO
-        return array();
+    public function getNoncompliances(): array {
+        $result = $this->db->query("SELECT code FROM NonCompliance ORDER BY date DESC");  ///TOCHECK code or *
+        if ($result === false) {
+            return array();
+        } else {
+            return $result->fetch_assoc();
+        }
     }
 
     /*****************\
      * NONCOMPLIANCE *
     \*****************/
+
+    public function getPossibleNoncompliances(): array {
+        $result = $this->db->query("SELECT code, name, description FROM NonComplianceList");
+        if ($result === false) {
+            return array();
+        } else {
+            return $result->fetch_assoc();
+        }
+    }
+
+    public function addNoncompliance(string $code, string $lot = null, int $processOrigin, int $type, string $repEmployee = null, string $date, string $comment = null): void {
+
+        if ($code == null) {
+            throw new \InvalidArgumentException("Some parameters are empty");
+        }
+        $code = $this->db->real_escape_string($code);
+
+
+        if ($lot != null) {
+            $lot = $this->db->real_escape_string($lot);
+        } else {
+            $lot = "NULL";
+        }
+    
+        $type = $this->db->real_escape_string($type);
+
+        $repEmployee = $this->db->real_escape_string($repEmployee);
+        $date = $this->db->real_escape_string($date);
+        $comment = $this->db->real_escape_string($comment);
+
+        $this->db->query("INSERT INTO NonCompliance(code,lot,processOrigin,type,repEmployee,date,comment) VALUES('$code','$lot',$processOrigin,$type,'$repEmployee','$comment')");
+    }
 
     /***********\
      * TICKETS *
