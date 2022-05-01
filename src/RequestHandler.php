@@ -111,7 +111,7 @@ class RequestHandler {
             case HTTP_GET:
                 // Get user information
                 $this->jsonKeysOK(array("email"));
-                $data = $this->db->infoUser($this->data["email"]);
+                $data = $this->db->getInfoUser($this->data["email"]);
                 $this->checkErrorThrowException();
                 $result = array(
                     "firstName" => $data["fn"],
@@ -178,6 +178,24 @@ class RequestHandler {
         // GET Get current settings (department, job, role)
         // POST Set new settings
         // DELETE Set default settings
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // GET Get current settings (department, job, role)
+                //TODO
+                $this->jsonKeysOK(array("email"));
+                $get = $this->db->getInfoSettings($this->data["email"]);
+                $this->checkErrorThrowException();
+                $result = $get;
+                break;
+            case HTTP_POST:
+                // POST Set new settings
+                break;
+            case HTTP_DELETE:
+                // DELETE Set default settings
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     protected function noncompliances(): mixed {
