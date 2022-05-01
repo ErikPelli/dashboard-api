@@ -269,9 +269,9 @@ class RequestHandler {
     }
 
     protected function noncompliance(): mixed {
-        // GET available non compliance types
+        // GET details about a noncompliance instance
         // PUT add new noncompliance instance
-        // POST details about a noncompliance instance
+        // POST change non compliance data
     }
 
     /**
