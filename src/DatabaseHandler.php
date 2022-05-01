@@ -153,12 +153,14 @@ class DatabaseHandler {
     \*****************/
 
     public function getPossibleNoncompliances(): array {
-        $result = $this->db->query("SELECT code, name, description FROM NonComplianceList");
-        if ($result === false) {
-            return array();
-        } else {
-            return $result->fetch_assoc();
+        $nonCompliances = $this->db->query("SELECT code, name, description FROM NonComplianceList");
+        $result = array();
+        if ($nonCompliances !== false) {
+            while ($row = $nonCompliances->fetch_assoc()) {
+                $result[] = $row;
+            }
         }
+        return $result;
     }
 
     public function addNoncompliance(string $code, string $lot = null, int $processOrigin, int $type, string $repEmployee = null, string $date, string $comment = null): void {
