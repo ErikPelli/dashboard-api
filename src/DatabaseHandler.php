@@ -161,15 +161,17 @@ class DatabaseHandler {
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
         $result = $this->db->query(
             "SELECT description, CO.name AS customerCompanyName, CO.address AS customerCompanyAddress,
-            L.shippingCode AS shippingCode, L.quantity AS productQuantity, N.code AS nonComplianceCode
+            L.shippingCode AS shippingCode, L.quantity AS productQuantity, C.description AS problemDescription,
+            CASE
+                WHEN C.closed = 1 THEN \"closed\"
+                WHEN C.answer IS NOT NULL THEN \"progress\"
+                ELSE \"new\"
+            END AS status
             FROM Complaint C
             JOIN Company CO ON C.vatNum=CO.vatNum
             JOIN Lot L ON C.shippingCode=L.shippingCode
-            JOIN NonCompliance N ON C.nonComplianceCode=N.code
             WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'"
         );
-
-        // calculate status (transaction)
 
         if ($result === false) {
             return array();
