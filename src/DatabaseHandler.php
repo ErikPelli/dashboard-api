@@ -136,17 +136,30 @@ class DatabaseHandler {
     }
 
     /******************\
-     * NONCOMPLIANCES *
+     * NONCOMPLIANCES *        //TODO POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
     \******************/
 
     public function getNoncompliancesList(): array {
-        //TODO
-        return array();
+        $result = $this->db->query("SELECT code FROM NonCompliance ORDER BY date DESC");  ///TOCHECK code or *
+        if ($result === false) {
+            return array();
+        }else{
+            return $result->fetch_assoc();
+        }
     }
 
     /*****************\
      * NONCOMPLIANCE *
     \*****************/
+
+    public function getPossibleNoncompliances(){
+        $result = $this->db->query("SELECT * FROM NonComplianceList");
+        if ($result === false) {
+            return array();
+        } else {
+            return $result->fetch_assoc();
+        }
+    }
 
     /***********\
      * TICKETS *
