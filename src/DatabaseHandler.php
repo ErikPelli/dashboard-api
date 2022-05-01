@@ -14,8 +14,12 @@ class DatabaseHandler {
         return ($err == "") ? null : $err;
     }
 
+    public function close(): void {
+        $this->db->close();
+    }
+
     /********\
-     *  USER  *
+     * USER *
     \********/
 
     public function registerUser(string $fiscalCode, string $firstName, string $lastName, string $email, string $password): void {
@@ -74,7 +78,7 @@ class DatabaseHandler {
     }
 
     /************\
-     *  PASSWORD  *
+     * PASSWORD *
     \************/
 
     public function setPassword(string $email, string $password = null): void {
@@ -93,7 +97,7 @@ class DatabaseHandler {
     }
 
     /************\
-     *  SETTINGS  *
+     * SETTINGS *
     \************/
 
     public function setInfoSettings(string $email, array $options): void {
@@ -132,7 +136,7 @@ class DatabaseHandler {
     }
 
     /******************\
-     *  NONCOMPLIANCES  *
+     * NONCOMPLIANCES *
     \******************/
 
     public function getNoncompliancesList(): array {
@@ -141,15 +145,15 @@ class DatabaseHandler {
     }
 
     /*****************\
-     *  NONCOMPLIANCE  *
+     * NONCOMPLIANCE *
     \*****************/
 
     /***********\
-     *  TICKETS  *
+     * TICKETS *
     \***********/
 
     /**********\
-     *  TICKET  *
+     * TICKET *
     \**********/
 
     public function getTicketDetails(string $vat, int $nonCompliance): array {
@@ -180,38 +184,18 @@ class DatabaseHandler {
         $vat = $this->db->real_escape_string($vat);
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
         $answer = $this->db->real_escape_string($answer);
-        $this->db->begin_transaction();
-        try {
-            $this->db->query("UPDATE Complaint SET answer='$answer' WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
-            if ($this->db->affected_rows == 1) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-                throw new \UnexpectedValueException("Complaint not found or more rows affected");
-            }
-        } catch (\mysqli_sql_exception $exception) {
-            $this->db->rollback();
+        $this->db->query("UPDATE Complaint SET answer='$answer' WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
+        if ($this->db->affected_rows == 0) {
+            throw new \LogicException("Complaint not found");
         }
     }
 
     public function closeTicket(string $vat, int $nonCompliance): void {
         $vat = $this->db->real_escape_string($vat);
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
-        $this->db->begin_transaction();
-        try {
-            $this->db->query("UPDATE Complaint SET closed=1 WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
-            if ($this->db->affected_rows == 1) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-                throw new \UnexpectedValueException("Complaint not found or more rows affected");
-            }
-        } catch (\mysqli_sql_exception $exception) {
-            $this->db->rollback();
+        $this->db->query("UPDATE Complaint SET closed=1 WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
+        if ($this->db->affected_rows == 0) {
+            throw new \LogicException("Complaint not found");
         }
-    }
-
-    public function close(): void {
-        $this->db->close();
     }
 }
