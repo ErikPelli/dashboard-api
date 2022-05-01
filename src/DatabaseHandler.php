@@ -152,6 +152,62 @@ class DatabaseHandler {
      * TICKETS *
     \***********/
 
+    public function getTickets(int $resultsPerPage, int $page): array {
+        if ($resultsPerPage <= 0 || $page <= 0) {
+            throw new \LengthException("Invalid page visualization arguments");
+        }
+        $offset = $resultsPerPage * $page;
+
+        $tickets = $this->db->query(
+            "SELECT vatNum, Complaint.nonComplianceCode AS nonComplianceCode
+            FROM Complaint
+            JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
+            ORDER BY date DESC
+            LIMIT {$resultsPerPage} OFFSET {$offset}"
+        );
+
+        $result = array();
+        if ($tickets !== false) {
+            while ($row = $tickets->fetch_assoc()) {
+                $tickets[] = $row;
+            }
+        }
+        return $result;
+    }
+
+    public function getTicketStats(): array {
+        $result = array();
+        $this->db->begin_transaction();
+        try {
+            $total = $this->db->query("SELECT COUNT(*) FROM Complaint");
+            if($total === false) {
+                $this->db->rollback();
+                return $result;
+            }
+            $result["totalTickets"] = (int) $total->fetch_column(); 
+
+            // Get last 30 days tickets (including today) ordered by most recent
+            $tickets = $this->db->query(
+                "SELECT date, COUNT(*) AS counter
+                FROM Complaint
+                JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
+                WHERE date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+                GROUP BY date
+                ORDER BY date DESC"
+            );
+            $this->db->commit();
+        } catch (\mysqli_sql_exception $exception) {
+            $this->db->rollback();
+        }
+        
+        if ($tickets !== false) {
+            while ($row = $tickets->fetch_assoc()) {
+                $tickets["days"][] = $row;
+            }
+        }
+        return $result;
+    }
+
     /**********\
      * TICKET *
     \**********/
