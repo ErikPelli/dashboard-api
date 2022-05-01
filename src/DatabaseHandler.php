@@ -71,24 +71,19 @@ class DatabaseHandler {
 
     public function setPassword(string $email, string $password = null): void {
         $email = $this->db->real_escape_string($email);
-        if ($password == null) {
-            $password = "NULL";
-        } else {
-            $password = "'" . hash("sha256", $password) . "'";
-        }
-        $this->db->begin_transaction();
-        try {
-            $this->db->query("UPDATE User SET password = $password WHERE email= '$email'");
-            if ($this->db->affected_rows == 1) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-                throw new \UnexpectedValueException("Email not found or more rows affected");
-            }
-        } catch (\mysqli_sql_exception $exception) {
-            $this->db->rollback();
+        $password = ($password === null) ? "NULL" : "'" . hash("sha256", $password) . "'";
+        $this->db->query("UPDATE User SET password = $password WHERE email='$email' LIMIT 1");
+        if($this->db->affected_rows == 0) {
+            throw new \LogicException("User doesn't exist");
         }
     }
+
+    public function isPasswordSet(string $email): bool {
+        $email = $this->db->real_escape_string($email);
+        $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password IS NULL");
+        return $result !== false && $result->fetch_column() == 1;
+    }
+
     public function getInfoSettings(string $email): array {
         $email = $this->db->real_escape_string($email);
         $result = $this->db->query("SELECT job, role, company FROM Employee JOIN User Where email = '$email'");
@@ -119,11 +114,7 @@ class DatabaseHandler {
             $this->db->rollback();
         }
     }
-    public function isPasswordSet(string $email): bool {
-        $email = $this->db->real_escape_string($email);
-        $result = $this->db->query("SELECT COUNT(*) AS total FROM User WHERE email='$email' AND password IS NULL");
-        return $result !== false && $result->fetch_column() == 1;
-    }
+    
     public function getNoncompliancesList():array{
         //TODO
         return array();
