@@ -266,28 +266,24 @@ class DatabaseHandler {
     /*****************\
      * NONCOMPLIANCE *
     \*****************/
-    //TODO
-    public function addNoncompliance(string $code, int $processOrigin, int $type, string $date, string $repEmployee = null, string $lot = null, string $comment = null): void {
 
-        if ($code == null) {
-            throw new \InvalidArgumentException("Some parameters are empty");
-        }
-        $code = $this->db->real_escape_string($code);
-
-
-        if ($lot != null) {
-            $lot = $this->db->real_escape_string($lot);
-        } else {
-            $lot = "NULL";
-        }
-
+    public function addNoncompliance(int $origin, int $type, string $date, string $comment = null): void {
         $type = $this->db->real_escape_string($type);
-
-        $repEmployee = $this->db->real_escape_string($repEmployee);
         $date = $this->db->real_escape_string($date);
-        $comment = $this->db->real_escape_string($comment);
 
-        $this->db->query("INSERT INTO NonCompliance(code,lot,processOrigin,type,repEmployee,date,comment) VALUES('$code','$lot',$processOrigin,$type,'$repEmployee','$comment')");
+        $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "NULL";
+        switch($origin) {
+            case "internal":
+                $origin = 1;
+            case "customer":
+                $origin = 2;
+            case "supplier":
+                $origin = 3;
+            default:
+                throw new \LogicException("Invalid origin");
+        }
+
+        $this->db->query("INSERT INTO NonCompliance(processOrigin,type,date,comment) VALUES($origin,$type,'$date',$comment)");
     }
 
     public function getNonComplianceDetails($code) {
