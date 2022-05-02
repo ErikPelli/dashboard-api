@@ -354,10 +354,90 @@ class RequestHandler {
         return $result;
     }
 
+    /**
+     * Handle the /api/noncompliance REST endpoint.
+     * 
+     * Get details about a noncompliance:
+     *  GET /api/noncompliances
+     *    {
+     *        "nonCompliance": int,
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": [
+     *                      {
+     *                          "origin": "internal" | "customer" | "supplier",
+     *                          "nonComplianceDate": string (YYYY-MM-DD),
+     *                          "comment": string | undefined,
+     *                          "analysisEndDate": string | undefined,
+     *                          "checkEndDate": string | undefined,
+     *                          "result": string | undefined, 
+     *                      }
+     *                  ] | {}
+     *    }
+     * 
+     * Change noncompliance status:
+     *  POST /api/noncompliances
+     *    {
+     *       "nonCompliance": int,
+     *       "status": "analysys" | "check" | "result"
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * Create a new noncompliance:
+     *  PUT /api/noncompliances
+     *    {
+     *        "nonComplianceOrigin": "internal" | "customer" | "supplier",
+     *        "nonComplianceType": int,
+     *        "comment": string | undefined
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function noncompliance(): mixed {
-        // GET details about a noncompliance instance
+        // GET 
         // PUT add new noncompliance instance
         // POST change non compliance data
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get details about a noncompliance
+                $this->jsonKeysOK(array("nonCompliance"));
+                $result = $this->db->getNonComplianceDetails($this->data["nonCompliance"]);
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_POST:
+                // Change noncompliance status
+                $this->jsonKeysOK(array("nonCompliance", "status"));
+                $this->db->editNonCompliance($this->data["nonCompliance"], $this->data["status"]);
+                $this->checkErrorThrowException();
+                $result = null;
+                break;
+            case HTTP_PUT:
+                // Create a new noncompliance
+                $this->jsonKeysOK(array("nonComplianceOrigin", "nonComplianceType"));
+                $comment = array_key_exists("comment", $this->data) ? $this->data["comment"] : null;
+                $this->db->addNoncompliance($this->data["nonComplianceOrigin"], $this->data["nonComplianceType"], $comment);
+                $this->checkErrorThrowException();
+                $result = null;
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     /**
