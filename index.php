@@ -17,6 +17,15 @@ if ($uri[1] !== "api" || !isset($uri[2])) {
     // GET, POST, PUT, DELETE
     $requestMethod = $_SERVER["REQUEST_METHOD"];
 
+    // Open DB connection
+    $dbConnection = new mysqli(
+        $_ENV['DB_HOST'],
+        $_ENV['DB_USERNAME'],
+        $_ENV['DB_PASSWORD'],
+        $_ENV['DB_DATABASE'],
+        (int) $_ENV['DB_PORT']
+    );
+
     // Handle the API request
     $controller = new Src\RequestHandler($dbConnection, $requestMethod, $function);
     $controller->processRequest();
