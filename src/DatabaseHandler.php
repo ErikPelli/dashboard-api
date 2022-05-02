@@ -195,7 +195,7 @@ class DatabaseHandler {
         } else {
             $lot = "NULL";
         }
-    
+
         $type = $this->db->real_escape_string($type);
 
         $repEmployee = $this->db->real_escape_string($repEmployee);
@@ -205,10 +205,27 @@ class DatabaseHandler {
         $this->db->query("INSERT INTO NonCompliance(code,lot,processOrigin,type,repEmployee,date,comment) VALUES('$code','$lot',$processOrigin,$type,'$repEmployee','$comment')");
     }
 
-    public function getNonComplianceDetails() {
+    public function getNonComplianceDetails($code) {
+        if ($code == null) {
+            throw new \InvalidArgumentException("Some parameters are empty");
+        }
+        $code = $this->db->real_escape_string($code);
+        $result = $this->db->query(
+            "SELECT lot, processOrigin, type, repEmploee, date, comment 
+            FROM NonCompliance 
+            WHERE code = '$code'"
+        );
+
+        if ($result === false) {
+            return array();
+        } else if ($result->num_rows != 1) {
+            throw new \LogicException("Invalid user database rows");
+        } else {
+            return $result->fetch_assoc();
+        }
     }
 
-    public function editNonCompliance() {
+    public function editNonCompliance($code) {
     }
 
     /***********\
@@ -243,11 +260,11 @@ class DatabaseHandler {
         $this->db->begin_transaction();
         try {
             $total = $this->db->query("SELECT COUNT(*) FROM Complaint");
-            if($total === false) {
+            if ($total === false) {
                 $this->db->rollback();
                 return $result;
             }
-            $result["totalTickets"] = (int) $total->fetch_column(); 
+            $result["totalTickets"] = (int) $total->fetch_column();
 
             // Get last 30 days tickets (including today) ordered by most recent
             $tickets = $this->db->query(
@@ -262,7 +279,7 @@ class DatabaseHandler {
         } catch (\mysqli_sql_exception $exception) {
             $this->db->rollback();
         }
-        
+
         if ($tickets !== false) {
             while ($row = $tickets->fetch_assoc()) {
                 $tickets["days"][] = $row;
