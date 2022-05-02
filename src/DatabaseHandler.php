@@ -181,8 +181,8 @@ class DatabaseHandler {
     /*****************\
      * NONCOMPLIANCE *
     \*****************/
-
-    public function addNoncompliance(string $code, string $lot = null, int $processOrigin, int $type, string $repEmployee = null, string $date, string $comment = null): void {
+    //TODO
+    public function addNoncompliance(string $code, int $processOrigin, int $type, string $date, string $repEmployee = null, string $lot = null, string $comment = null): void {
 
         if ($code == null) {
             throw new \InvalidArgumentException("Some parameters are empty");
@@ -225,7 +225,27 @@ class DatabaseHandler {
         }
     }
 
-    public function editNonCompliance($code) {
+    public function editNonCompliance(string $code, array $options): void {
+        if (count($options) == 0) {
+            // Nothing to do
+            return;
+        }
+
+        // processOrigin, type, date, repEmployee, lot, comment fields
+        $toSet = "";
+        foreach ($options as $key => $value) {
+            $key = $this->db->real_escape_string($key);
+            $value = $this->db->real_escape_string($value);
+            $toSet .= "{$key}='{$value}',";
+        }
+        // Remove last unusued comma
+        $toSet = substr($toSet, 0, -1);
+
+        $code = $this->db->real_escape_string($code);
+        $this->db->query("UPDATE NonCompliance SET {$toSet} WHERE code = $code");
+        if ($this->db->affected_rows == 0) {
+            throw new \LogicException("Noncompliance not found");
+        }
     }
 
     /***********\
