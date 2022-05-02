@@ -162,8 +162,67 @@ class DatabaseHandler {
     }
 
     public function getNonCompliancesStats(): array {
-        // TODO
         $result = array();
+        $this->db->begin_transaction();
+        try {
+            // Get all non compliances count divided by status
+            $total = $this->db->query(
+                "SELECT
+                CASE
+                    WHEN NCR.nonComplianceCode IS NOT NULL THEN \"closed\"
+                    WHEN NCC.nonComplianceCode IS NOT NULL THEN \"review\"
+                    WHEN NCA.nonComplianceCode IS NOT NULL THEN \"progress\"
+                    ELSE \"new\"
+                END AS status, COUNT(*) AS counter
+                FROM NonCompliance NC
+                LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
+                LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
+                LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
+                GROUP BY status"
+            );
+            if ($total === false) {
+                $this->db->rollback();
+                return $result;
+            }
+
+            $result["totalNonCompliances"] = array(
+                "new" => 0,
+                "progress" => 0,
+                "review" => 0,
+                "closed" => 0
+            );
+
+            while ($row = $total->fetch_assoc()) {
+                $result["totalNonCompliances"][$row["status"]] = $row["counter"];
+            }
+
+            // Get last 30 days non compliances (including today) ordered by most recent
+            $nonCompliances = $this->db->query(
+                "SELECT date,
+                CASE
+                    WHEN NCR.nonComplianceCode IS NOT NULL THEN \"closed\"
+                    WHEN NCC.nonComplianceCode IS NOT NULL THEN \"review\"
+                    WHEN NCA.nonComplianceCode IS NOT NULL THEN \"progress\"
+                    ELSE \"new\"
+                END AS status, COUNT(*) AS counter
+                FROM NonCompliance NC
+                LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
+                LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
+                LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
+                WHERE date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+                GROUP BY date, status
+                ORDER BY date DESC"
+            );
+            $this->db->commit();
+        } catch (\mysqli_sql_exception $exception) {
+            $this->db->rollback();
+        }
+
+        if ($nonCompliances !== false) {
+            while ($row = $nonCompliances->fetch_assoc()) {
+                $nonCompliances["days"][] = $row;
+            }
+        }
         return $result;
     }
 
@@ -195,7 +254,7 @@ class DatabaseHandler {
         } else {
             $lot = "NULL";
         }
-    
+
         $type = $this->db->real_escape_string($type);
 
         $repEmployee = $this->db->real_escape_string($repEmployee);
@@ -243,11 +302,11 @@ class DatabaseHandler {
         $this->db->begin_transaction();
         try {
             $total = $this->db->query("SELECT COUNT(*) FROM Complaint");
-            if($total === false) {
+            if ($total === false) {
                 $this->db->rollback();
                 return $result;
             }
-            $result["totalTickets"] = (int) $total->fetch_column(); 
+            $result["totalTickets"] = (int) $total->fetch_column();
 
             // Get last 30 days tickets (including today) ordered by most recent
             $tickets = $this->db->query(
@@ -262,7 +321,7 @@ class DatabaseHandler {
         } catch (\mysqli_sql_exception $exception) {
             $this->db->rollback();
         }
-        
+
         if ($tickets !== false) {
             while ($row = $tickets->fetch_assoc()) {
                 $tickets["days"][] = $row;
