@@ -296,9 +296,13 @@ class DatabaseHandler {
         }
         $code = $this->db->real_escape_string($code);
         $result = $this->db->query(
-            "SELECT lot, processOrigin, type, repEmploee, date, comment 
-            FROM NonCompliance 
-            WHERE code = '$code'"
+            "SELECT NC.processOrigin AS origin, NC.type AS nonComplianceType, NC.date AS nonComplianceDate, NC.comment AS comment,
+            NCA.expirationDate AS analysisEndDate, NCC.expirationDate AS checkEndDate, NCR.result AS result
+            FROM NonCompliance NC
+            LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
+            LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
+            LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
+            WHERE NC.code = '$code'"
         );
 
         if ($result === false) {
@@ -306,7 +310,33 @@ class DatabaseHandler {
         } else if ($result->num_rows != 1) {
             throw new \LogicException("Invalid user database rows");
         } else {
-            return $result->fetch_assoc();
+            $result = $result->fetch_assoc();
+            switch($result["origin"]) {
+                case 1:
+                    $result["origin"] = "internal";
+                case 2:
+                    $result["origin"] = "customer";
+                case 3:
+                    $result["origin"] = "supplier";
+                default:
+                    throw new \LogicException("Invalid origin");
+            }
+
+            // Remove optional unset values
+            if($result["comment"] === null) {
+                unset($result["comment"]);
+            }
+            if($result["analysisEndDate"] === null) {
+                unset($result["analysisEndDate"]);
+            }
+            if($result["checkEndDate"] === null) {
+                unset($result["checkEndDate"]);
+            }
+            if($result["result"] === null) {
+                unset($result["result"]);
+            }
+
+            return $result;
         }
     }
 
