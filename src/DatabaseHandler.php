@@ -219,9 +219,35 @@ class DatabaseHandler {
         }
 
         if ($nonCompliances !== false) {
+            /*
+                [{
+                    "date"
+                    "new"
+                    "progress"
+                    "review"
+                    "closed"
+                }]
+            */
+            $temp = array();
             while ($row = $nonCompliances->fetch_assoc()) {
-                $nonCompliances["days"][] = $row;
+                // Initialize for missing values
+                if(!array_key_exists("new", $temp[$row["date"]])) {
+                    $temp[$row["date"]]["new"] = 0;
+                }
+                if(!array_key_exists("progress", $temp[$row["date"]])) {
+                    $temp[$row["date"]]["progress"] = 0;
+                }
+                if(!array_key_exists("review", $temp[$row["date"]])) {
+                    $temp[$row["date"]]["review"] = 0;
+                }
+                if(!array_key_exists("closed", $temp[$row["date"]])) {
+                    $temp[$row["date"]]["closed"] = 0;
+                }
+
+                $temp[$row["date"]]["date"] = $row["date"];
+                $temp[$row["date"]][$row["status"]] = $row["counter"];
             }
+            $result["days"] = array_values($temp);
         }
         return $result;
     }
@@ -361,7 +387,7 @@ class DatabaseHandler {
 
         if ($tickets !== false) {
             while ($row = $tickets->fetch_assoc()) {
-                $tickets["days"][] = $row;
+                $result["days"][] = $row;
             }
         }
         return $result;
