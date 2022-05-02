@@ -244,6 +244,7 @@ class RequestHandler {
                     $this->data["company"] = $this->data["company"];
                 }
                 $this->db->setInfoSettings($this->data["email"], $options);
+                $this->checkErrorThrowException();
                 $result = null;
                 break;
             case HTTP_DELETE:
@@ -254,6 +255,7 @@ class RequestHandler {
                     "role" => $_ENV['DEFAULT_ROLE'],
                     "department" => $_ENV['DEFAULT_DEPARTMENT']
                 ));
+                $this->checkErrorThrowException();
                 $result = null;
                 break;
             default:
@@ -262,10 +264,94 @@ class RequestHandler {
         return $result;
     }
 
+    /**
+     * Handle the /api/noncompliances REST endpoint.
+     * 
+     * Get non compliances list ordered by most recent:
+     *  GET /api/noncompliances
+     *    {
+     *        "resultsPerPage": int,
+     *        "pageNumber": int
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": [
+     *                      {
+     *                          "nonComplianceCode": int
+     *                      }
+     *                  ] | {}
+     *    }
+     * 
+     * Return the total of all noncompliances separated by their status and
+     * statistics about the noncompliances in the last 30 days:
+     *  POST /api/noncompliances
+     *    {}
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      "totalNonCompliances": {
+     *                          "new": int,
+     *                          "progress": int,
+     *                          "review": int,
+     *                          "closed": int
+     *                      },
+     *                      "days": [
+     *                                  {
+     *                                      "date": string (YYYY-MM-DD),
+     *                                      "new": int,
+     *                                      "progress": int,
+     *                                      "review": int,
+     *                                      "closed": int
+     *                                  }  
+     *                              ]
+     *                  } | {}
+     *    }
+     * 
+     * Get available non compliance types:
+     *  PUT /api/noncompliances
+     *    {}
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      [
+     *                          "code": int,
+     *                          "name": string,
+     *                          "description": string  
+     *                      ]
+     *                  } | {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function noncompliances(): mixed {
-        // GET Get non compliances list
-        // POST get current non compliances stats (new, in progress, review, closed). get status numbers for every day last month.
-        // PUT Get available non compliance types
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get non compliances list
+                $this->jsonKeysOK(array("resultsPerPage", "pageNumber"));
+                $result = $this->db->getNonCompliances($this->data["resultsPerPage"], $this->data["pageNumber"]);
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_POST:
+                // Get current non compliances stats
+                $result = $this->db->getNonCompliancesStats();
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_PUT:
+                // Get available non compliance types
+                $result = $this->db->getPossibleNonCompliances();
+                $this->checkErrorThrowException();
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     protected function noncompliance(): mixed {
@@ -405,12 +491,14 @@ class RequestHandler {
                 // Set an answer to a ticket
                 $this->jsonKeysOK(array("vat", "nonCompliance", "answer"));
                 $this->db->answerToTicket($this->data["vat"], $this->data["nonCompliance"], $this->data["answer"]);
+                $this->checkErrorThrowException();
                 $result = null;
                 break;
             case HTTP_DELETE:
                 // Close a ticket
                 $this->jsonKeysOK(array("vat", "nonCompliance"));
                 $this->db->closeTicket($this->data["vat"], $this->data["nonCompliance"]);
+                $this->checkErrorThrowException();
                 $result = null;
                 break;
             default:
