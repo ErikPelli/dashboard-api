@@ -267,26 +267,27 @@ class DatabaseHandler {
      * NONCOMPLIANCE *
     \*****************/
 
-    public function addNoncompliance(int $origin, int $type, string $date, string $comment = null): void {
+    public function addNoncompliance(string $origin, int $type, string $comment = null): void {
         $type = $this->db->real_escape_string($type);
-        $date = $this->db->real_escape_string($date);
-
         $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "NULL";
         switch($origin) {
             case "internal":
                 $origin = 1;
+                break;
             case "customer":
                 $origin = 2;
+                break;
             case "supplier":
                 $origin = 3;
+                break;
             default:
                 throw new \LogicException("Invalid origin");
         }
 
-        $this->db->query("INSERT INTO NonCompliance(processOrigin,type,date,comment) VALUES($origin,$type,'$date',$comment)");
+        $this->db->query("INSERT INTO NonCompliance(processOrigin,type,date,comment) VALUES($origin,$type,CURDATE(),$comment)");
     }
 
-    public function getNonComplianceDetails($code) {
+    public function getNonComplianceDetails($code) : array {
         if ($code == null) {
             throw new \InvalidArgumentException("Some parameters are empty");
         }
@@ -310,10 +311,13 @@ class DatabaseHandler {
             switch($result["origin"]) {
                 case 1:
                     $result["origin"] = "internal";
+                    break;
                 case 2:
                     $result["origin"] = "customer";
+                    break;
                 case 3:
                     $result["origin"] = "supplier";
+                    break;
                 default:
                     throw new \LogicException("Invalid origin");
             }
@@ -336,27 +340,23 @@ class DatabaseHandler {
         }
     }
 
-    public function editNonCompliance(string $code, array $options): void {
-        if (count($options) == 0) {
-            // Nothing to do
-            return;
+    public function editNonCompliance(string $code, string $status): void {
+        switch($status) {
+            case "analysys":
+                $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,date) VALUES('$code',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+                break;
+            case "check":
+                $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,date) VALUES('$code',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";;
+                break;
+            case "result":
+                $query = "INSERT INTO NonComplianceResult(nonComplianceCode,comment) VALUES('$code','Corrected')";
+                break;
+            default:
+                throw new \LogicException("Invalid origin");
         }
-
-        // processOrigin, type, date, repEmployee, lot, comment fields
-        $toSet = "";
-        foreach ($options as $key => $value) {
-            $key = $this->db->real_escape_string($key);
-            $value = $this->db->real_escape_string($value);
-            $toSet .= "{$key}='{$value}',";
-        }
-        // Remove last unusued comma
-        $toSet = substr($toSet, 0, -1);
 
         $code = $this->db->real_escape_string($code);
-        $this->db->query("UPDATE NonCompliance SET {$toSet} WHERE code = $code");
-        if ($this->db->affected_rows == 0) {
-            throw new \LogicException("Noncompliance not found");
-        }
+        $this->db->query($query);
     }
 
     /***********\
