@@ -27,7 +27,7 @@ class DatabaseHandler {
             throw new \LengthException("Mismatched fiscal code length, it must be 16");
         }
 
-        if (empty($fiscalCode) || empty($email)) {
+        if (empty($firstName) || empty($lastName) || empty($email)) {
             throw new \InvalidArgumentException("Some parameters are empty");
         }
 
@@ -48,6 +48,7 @@ class DatabaseHandler {
             $this->db->commit();
         } catch (\mysqli_sql_exception $exception) {
             $this->db->rollback();
+            throw new \LogicException("User already exists");
         }
     }
 
