@@ -87,7 +87,7 @@ class DatabaseHandler {
         $password = ($password === null) ? "NULL" : "'" . password_hash($password, PASSWORD_DEFAULT) . "'";
         $this->db->query("UPDATE User SET password=$password WHERE email='$email' LIMIT 1");
         if ($this->db->affected_rows == 0) {
-            throw new \LogicException("User doesn't exist");
+            throw new \LogicException("No changes performed");
         }
     }
 
