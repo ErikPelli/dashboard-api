@@ -373,13 +373,13 @@ class RequestHandler {
      *    {
      *        "success": bool,
      *        "error": undefined | string,
-     *        "result": {
-     *                      [
+     *        "result": [
+     *                      {
      *                          "code": int,
      *                          "name": string,
      *                          "description": string  
-     *                      ]
-     *                  } | {}
+     *                      }
+     *                  ] | {}
      *    }
      * 
      * @return mixed any value that will encoded into JSON "result" field.
@@ -433,7 +433,7 @@ class RequestHandler {
      *                  ] | {}
      *    }
      * 
-     * Change noncompliance status:
+     * Change noncompliance status (only to next step, if currently is check, the new value can be only result):
      *  POST /api/noncompliances
      *    {
      *       "nonCompliance": int,
