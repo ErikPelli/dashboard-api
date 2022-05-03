@@ -1,6 +1,6 @@
 <?php
-require "bootstrap.php";
-require "src/handlers.php";
+require("bootstrap.php");
+require_once("src/handlers.php");
 
 header("Content-Type: application/json");
 
