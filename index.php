@@ -1,5 +1,5 @@
 <?php
-require "src/bootstrap.php";
+require "bootstrap.php";
 require "src/handlers.php";
 
 header("Content-Type: application/json");
@@ -12,7 +12,7 @@ if ($uri[1] !== "api" || !isset($uri[2])) {
     Src\showError("Invalid endpoint", HTTP_BAD_REQUEST);
 } else {
     // REST API name
-    $function = $uri[3];
+    $function = $uri[2];
 
     // GET, POST, PUT, DELETE
     $requestMethod = $_SERVER["REQUEST_METHOD"];

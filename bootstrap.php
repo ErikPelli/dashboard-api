@@ -1,5 +1,5 @@
 <?php
-require '../vendor/autoload.php';
+require 'vendor/autoload.php';
 
 // Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -15,7 +15,7 @@ $dbConnection = new mysqli(
 );
 
 // Create needed tables
-$initsql = file_get_contents("init.sql");
+$initsql = @file_get_contents("init.sql");
 if ($initsql !== false) {
     if ($dbConnection->query($initsql) === false) {
         echo "Invalid query result";
