@@ -33,7 +33,13 @@ class RequestHandler {
      * @return array, the parsed associative array.
      */
     private function parseJsonData(): array {
-        return json_decode(file_get_contents('php://input'), true);
+        $decoded = json_decode(file_get_contents('php://input'), true);
+        if($decoded === null) {
+            showError("Invalid JSON input", HTTP_BAD_REQUEST);
+            exit();
+        } else {
+            return $decoded;
+        }
     }
 
     /**
@@ -284,13 +290,13 @@ class RequestHandler {
                 $this->jsonKeysOK(array("email"));
                 $options = array();
                 if(array_key_exists("job", $this->data)) {
-                    $this->data["job"] = $this->data["job"];
+                    $options["job"] = $this->data["job"];
                 }
                 if(array_key_exists("role", $this->data)) {
-                    $this->data["role"] = $this->data["role"];
+                    $options["role"] = $this->data["role"];
                 }
                 if(array_key_exists("company", $this->data)) {
-                    $this->data["company"] = $this->data["company"];
+                    $options["company"] = $this->data["company"];
                 }
                 $this->db->setInfoSettings($this->data["email"], $options);
                 $this->checkErrorThrowException();

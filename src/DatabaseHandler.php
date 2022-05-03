@@ -126,7 +126,7 @@ class DatabaseHandler {
         $email = $this->db->real_escape_string($email);
         $this->db->query("UPDATE Employee SET {$toSet} WHERE fiscalCode=(SELECT fiscalCode FROM User WHERE email='{$email}') LIMIT 1");
         if ($this->db->affected_rows == 0) {
-            throw new \LogicException("User doesn't exist");
+            throw new \LogicException("No changes performed");
         }
     }
 
