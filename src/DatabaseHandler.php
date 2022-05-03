@@ -226,38 +226,27 @@ class DatabaseHandler {
         }
 
         if ($nonCompliances !== false) {
-            /*
-                [{
-                    "date"
-                    "new"
-                    "progress"
-                    "review"
-                    "closed"
-                }]
-            */
             $temp = array();
+
+            // Initialize last 30 days
+            for ($i = 0; $i <= 30; $i++) {
+                $date = new \DateTime("-$i days");
+                $date = $date->format("Y-m-d");
+                $temp[$date] = array(
+                    "date" => $date,
+                    "new" => 0,
+                    "progress" => 0,
+                    "review" => 0,
+                    "closed" => 0,
+                );
+            }
+
+            // Fill counters from DB
             while ($row = $nonCompliances->fetch_assoc()) {
-                if(!array_key_exists($row["date"], $temp)) {
-                    $temp[$row["date"]] = array();
-                }
-
-                // Initialize for missing values
-                if(!array_key_exists("new", $temp[$row["date"]])) {
-                    $temp[$row["date"]]["new"] = 0;
-                }
-                if(!array_key_exists("progress", $temp[$row["date"]])) {
-                    $temp[$row["date"]]["progress"] = 0;
-                }
-                if(!array_key_exists("review", $temp[$row["date"]])) {
-                    $temp[$row["date"]]["review"] = 0;
-                }
-                if(!array_key_exists("closed", $temp[$row["date"]])) {
-                    $temp[$row["date"]]["closed"] = 0;
-                }
-
-                $temp[$row["date"]]["date"] = $row["date"];
                 $temp[$row["date"]][$row["status"]] = (int) $row["counter"];
             }
+
+            // Remove keys from temp array, they were used to avoid duplicated dates
             $result["days"] = array_values($temp);
         }
         return $result;
