@@ -18,6 +18,18 @@ class DatabaseHandler {
         $this->db->close();
     }
 
+    private static function handleResult(mixed $mysql_result): array {
+        if ($mysql_result === false) {
+            return array();
+        } else if ($mysql_result->num_rows == 0) {
+            throw new \LogicException("User doesn't exist");
+        } else if ($mysql_result->num_rows != 1) {
+            throw new \LogicException("Invalid user database rows");
+        } else {
+            return $mysql_result->fetch_assoc();
+        }
+    }
+
     /********\
      * USER *
     \********/
@@ -69,13 +81,7 @@ class DatabaseHandler {
             FROM PersonalData JOIN User ON PersonalData.fiscalCode = User.fiscalCode
             WHERE email = '$email'"
         );
-        if ($result === false) {
-            return array();
-        } else if ($result->num_rows != 1) {
-            throw new \LogicException("Invalid user database rows");
-        } else {
-            return $result->fetch_assoc();
-        }
+        return DatabaseHandler::handleResult($result);
     }
 
     /************\
@@ -126,14 +132,13 @@ class DatabaseHandler {
 
     public function getInfoSettings(string $email): array {
         $email = $this->db->real_escape_string($email);
-        $result = $this->db->query("SELECT job, role, company FROM Employee JOIN User WHERE email='{$email}'");
-        if ($result === false) {
-            return array();
-        } else if ($result->num_rows != 1) {
-            throw new \LogicException("Invalid user database rows");
-        } else {
-            return $result->fetch_assoc();
-        }
+        $result = $this->db->query(
+            "SELECT job, role, company
+            FROM Employee
+            JOIN User ON Employee.fiscalCode=User.fiscalCode
+            WHERE email='{$email}'"
+        );
+        return DatabaseHandler::handleResult($result);
     }
 
     /******************\
