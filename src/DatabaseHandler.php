@@ -149,7 +149,7 @@ class DatabaseHandler {
         if ($resultsPerPage <= 0 || $page <= 0) {
             throw new \LengthException("Invalid page visualization arguments");
         }
-        $offset = $resultsPerPage * $page;
+        $offset = $resultsPerPage * ($page - 1);
 
         $nonCompliances = $this->db->query(
             "SELECT code AS nonComplianceCode
@@ -161,7 +161,8 @@ class DatabaseHandler {
         $result = array();
         if ($nonCompliances !== false) {
             while ($row = $nonCompliances->fetch_assoc()) {
-                $tickets[] = $row;
+                settype($row["nonComplianceCode"], "int");
+                $result[] = $row;
             }
         }
         return $result;
@@ -199,7 +200,7 @@ class DatabaseHandler {
             );
 
             while ($row = $total->fetch_assoc()) {
-                $result["totalNonCompliances"][$row["status"]] = $row["counter"];
+                $result["totalNonCompliances"][$row["status"]] = (int) $row["counter"];
             }
 
             // Get last 30 days non compliances (including today) ordered by most recent
@@ -236,6 +237,10 @@ class DatabaseHandler {
             */
             $temp = array();
             while ($row = $nonCompliances->fetch_assoc()) {
+                if(!array_key_exists($row["date"], $temp)) {
+                    $temp[$row["date"]] = array();
+                }
+
                 // Initialize for missing values
                 if(!array_key_exists("new", $temp[$row["date"]])) {
                     $temp[$row["date"]]["new"] = 0;
@@ -251,7 +256,7 @@ class DatabaseHandler {
                 }
 
                 $temp[$row["date"]]["date"] = $row["date"];
-                $temp[$row["date"]][$row["status"]] = $row["counter"];
+                $temp[$row["date"]][$row["status"]] = (int) $row["counter"];
             }
             $result["days"] = array_values($temp);
         }
@@ -275,7 +280,7 @@ class DatabaseHandler {
 
     public function addNoncompliance(string $origin, int $type, string $comment = null): void {
         $type = $this->db->real_escape_string($type);
-        $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "NULL";
+        $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "''";
         switch($origin) {
             case "internal":
                 $origin = 1;
@@ -347,21 +352,22 @@ class DatabaseHandler {
     }
 
     public function editNonCompliance(string $code, string $status): void {
+        $code = $this->db->real_escape_string($code);
+
         switch($status) {
             case "analysys":
-                $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,date) VALUES('$code',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+                $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','RSNSMN84H04D612M','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;
             case "check":
-                $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,date) VALUES('$code',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";;
+                $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','RSNSMN84H04D612M','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;
             case "result":
-                $query = "INSERT INTO NonComplianceResult(nonComplianceCode,comment) VALUES('$code','Corrected')";
+                $query = "INSERT INTO NonComplianceResult(nonComplianceCode,result,comment) VALUES('$code','The customer received a new set of working pen drives','Corrected')";
                 break;
             default:
                 throw new \LogicException("Invalid origin");
         }
 
-        $code = $this->db->real_escape_string($code);
         $this->db->query($query);
     }
 
