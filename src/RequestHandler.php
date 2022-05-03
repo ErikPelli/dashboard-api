@@ -222,6 +222,55 @@ class RequestHandler {
         return $result;
     }
 
+    /**
+     * Handle the /api/settings REST endpoint.
+     * 
+     * Get current settings for the specified user:
+     *  GET /api/settings
+     *    {
+     *        "email": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {
+     *                      "job": string,
+     *                      "role": string,
+     *                      "company": string
+     *                  } | {}
+     *    }
+     * 
+     * Overwrite current settings with some specified:
+     *  POST /api/settings
+     *    {
+     *        "email": string,
+     *        "job": string | undefined,
+     *        "role": string | undefined,
+     *        "company": string | undefined
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * Reset the settings and set the default one:
+     *  DELETE /api/settings
+     *    {
+     *        "email": string
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
     protected function settings(): mixed {
         switch ($this->requestMethod) {
             case HTTP_GET:
@@ -409,9 +458,6 @@ class RequestHandler {
      * @throws UnsupportedMethodException current REST method not supported.
      */
     protected function noncompliance(): mixed {
-        // GET 
-        // PUT add new noncompliance instance
-        // POST change non compliance data
         switch ($this->requestMethod) {
             case HTTP_GET:
                 // Get details about a noncompliance
@@ -609,6 +655,8 @@ class RequestHandler {
                 $code = $e->getCode();
                 showError($e->getMessage(), ($code != 0) ? $code : HTTP_BAD_REQUEST);
             }
+        } else {
+            showError("Invalid endpoint", HTTP_BAD_REQUEST);
         }
     }
 
