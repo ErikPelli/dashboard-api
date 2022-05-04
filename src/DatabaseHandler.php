@@ -30,6 +30,51 @@ class DatabaseHandler {
         }
     }
 
+    /**********\
+     * DETAILS *
+    \**********/
+
+    public function getUsers(): array {
+        $emails = $this->db->query(
+            "SELECT email FROM User"
+        );
+
+        $result = array();
+        if ($emails !== false) {
+            while ($row = $emails->fetch_assoc()) {
+                $result[] = $row;
+            }
+        }
+        return $result;
+    }
+
+    public function getLots(bool $limit, int $resultsPerPage = 0, int $page = 0): array {
+        if ($limit) {
+            if ($resultsPerPage <= 0 || $page <= 0) {
+                throw new \LengthException("Invalid page visualization arguments");
+            }
+            $offset = $resultsPerPage * ($page - 1);
+            $limit = "LIMIT {$resultsPerPage} OFFSET {$offset}";
+        } else {
+            $limit = "";
+        }
+
+        $lots = $this->db->query(
+            "SELECT shippingCode, deliveryDate
+            FROM Lot
+            ORDER BY deliveryDate DESC
+            {limit}"
+        );
+
+        $result = array();
+        if ($lots !== false) {
+            while ($row = $lots->fetch_assoc()) {
+                $result[] = $row;
+            }
+        }
+        return $result;
+    }
+
     /********\
      * USER *
     \********/
@@ -151,7 +196,7 @@ class DatabaseHandler {
         }
         $offset = $resultsPerPage * ($page - 1);
 
-        if($search != "") {
+        if ($search != "") {
             $search = $this->db->real_escape_string($search);
             $search = "WHERE comment LIKE '% $search %'";
         }
@@ -273,10 +318,10 @@ class DatabaseHandler {
      * NONCOMPLIANCE *
     \*****************/
 
-    public function addNoncompliance(string $origin, int $type, string $comment = null): void {
+    public function addNoncompliance(string $origin, int $type, string $lot, string $comment = null): void {
         $type = $this->db->real_escape_string($type);
         $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "''";
-        switch($origin) {
+        switch ($origin) {
             case "internal":
                 $origin = 1;
                 break;
@@ -290,16 +335,16 @@ class DatabaseHandler {
                 throw new \LogicException("Invalid origin");
         }
 
-        $this->db->query("INSERT INTO NonCompliance(processOrigin,type,date,comment) VALUES($origin,$type,CURDATE(),$comment)");
+        $this->db->query("INSERT INTO NonCompliance(processOrigin,type,date,comment,lot) VALUES($origin,$type,CURDATE(),$comment,$lot)");
     }
 
-    public function getNonComplianceDetails($code) : array {
+    public function getNonComplianceDetails($code): array {
         if ($code == null) {
             throw new \InvalidArgumentException("Some parameters are empty");
         }
         $code = $this->db->real_escape_string($code);
         $result = $this->db->query(
-            "SELECT NC.processOrigin AS origin, NC.type AS nonComplianceType, NC.date AS nonComplianceDate, NC.comment AS comment,
+            "SELECT NC.processOrigin AS origin, NC.type AS nonComplianceType, NC.date AS nonComplianceDate, NC.lot AS shippingLot, NC.comment AS comment,
             Manager.email AS managerEmail, NCA.expirationDate AS analysisEndDate, NCC.expirationDate AS checkEndDate, NCR.result AS result
             FROM NonCompliance NC
             LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
@@ -315,7 +360,7 @@ class DatabaseHandler {
             throw new \LogicException("Invalid user database rows");
         } else {
             $result = $result->fetch_assoc();
-            switch($result["origin"]) {
+            switch ($result["origin"]) {
                 case 1:
                     $result["origin"] = "internal";
                     break;
@@ -332,19 +377,19 @@ class DatabaseHandler {
             settype($result["nonComplianceType"], "int");
 
             // Remove optional unset values
-            if($result["comment"] === null) {
+            if ($result["comment"] === null) {
                 unset($result["comment"]);
             }
-            if($result["analysisEndDate"] === null) {
+            if ($result["analysisEndDate"] === null) {
                 unset($result["analysisEndDate"]);
             }
-            if($result["checkEndDate"] === null) {
+            if ($result["checkEndDate"] === null) {
                 unset($result["checkEndDate"]);
             }
-            if($result["result"] === null) {
+            if ($result["result"] === null) {
                 unset($result["result"]);
             }
-            if($result["managerEmail"] === null) {
+            if ($result["managerEmail"] === null) {
                 unset($result["managerEmail"]);
             }
 
@@ -355,7 +400,7 @@ class DatabaseHandler {
     public function editNonCompliance(string $code, string $status): void {
         $code = $this->db->real_escape_string($code);
 
-        switch($status) {
+        switch ($status) {
             case "analysys":
                 $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','RSNSMN84H04D612M','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;

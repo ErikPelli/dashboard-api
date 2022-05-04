@@ -34,7 +34,7 @@ class RequestHandler {
      */
     private function parseJsonData(): array {
         $decoded = json_decode(file_get_contents('php://input'), true);
-        if($decoded === null) {
+        if ($decoded === null) {
             showError("Invalid JSON input", HTTP_BAD_REQUEST);
             exit();
         } else {
@@ -64,6 +64,69 @@ class RequestHandler {
                 throw new \InvalidArgumentException("Invalid JSON input parameters");
             }
         }
+    }
+
+    /**
+     * Handle the /api/details REST endpoint.
+     * 
+     * Get a list of all the users:
+     *  GET /api/details
+     *    {}
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": [
+     *                      {
+     *                          "email": string
+     *                      }
+     *                  ] | {}
+     *    }
+     * 
+     * Get a list of shipping lots, use limit=true to limit the results:
+     *  POST /api/details
+     *    {
+     *        "limit": bool,
+     *        "resultsPerPage": int | undefined,
+     *        "pageNumber": int | undefined
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": [
+     *                      {
+     *                          "shippingCode": string,
+     *                          "deliveryDate": string (YYYY-MM-DD)
+     *                      }
+     *                  ] | {}
+     *    }
+     * 
+     * @return mixed any value that will encoded into JSON "result" field.
+     * @throws UnsupportedMethodException current REST method not supported.
+     */
+    protected function details(): mixed {
+        switch ($this->requestMethod) {
+            case HTTP_GET:
+                // Get all users
+                $result = $this->db->getInfoUser($this->data["email"]);
+                $this->checkErrorThrowException();
+                break;
+            case HTTP_POST:
+                // Get shipping lots
+                $this->jsonKeysOK(array("limit"));
+                if ($this->data["limit"]) {
+                    $this->jsonKeysOK(array("resultsPerPage", "pageNumber"));
+                    $result = $this->db->getLots(true, $this->data["resultsPerPage"], $this->data["pageNumber"]);
+                } else {
+                    $result = $this->db->getLots(false);
+                }
+                $this->checkErrorThrowException();
+                break;
+            default:
+                throw new UnsupportedMethodException();
+        }
+        return $result;
     }
 
     /**
@@ -289,13 +352,13 @@ class RequestHandler {
                 // Set new settings
                 $this->jsonKeysOK(array("email"));
                 $options = array();
-                if(array_key_exists("job", $this->data)) {
+                if (array_key_exists("job", $this->data)) {
                     $options["job"] = $this->data["job"];
                 }
-                if(array_key_exists("role", $this->data)) {
+                if (array_key_exists("role", $this->data)) {
                     $options["role"] = $this->data["role"];
                 }
-                if(array_key_exists("company", $this->data)) {
+                if (array_key_exists("company", $this->data)) {
                     $options["company"] = $this->data["company"];
                 }
                 $this->db->setInfoSettings($this->data["email"], $options);
@@ -429,6 +492,7 @@ class RequestHandler {
      *                          "origin": "internal" | "customer" | "supplier",
      *                          "nonComplianceType": int,
      *                          "nonComplianceDate": string (YYYY-MM-DD),
+     *                          "shippingLot": string,
      *                          "comment": string | undefined,
      *                          "managerEmail": string | undefined,
      *                          "analysisEndDate": string | undefined,
@@ -485,9 +549,14 @@ class RequestHandler {
                 break;
             case HTTP_PUT:
                 // Create a new noncompliance
-                $this->jsonKeysOK(array("nonComplianceOrigin", "nonComplianceType"));
+                $this->jsonKeysOK(array("nonComplianceOrigin", "nonComplianceType", "shippingLot"));
                 $comment = array_key_exists("comment", $this->data) ? $this->data["comment"] : null;
-                $this->db->addNoncompliance($this->data["nonComplianceOrigin"], $this->data["nonComplianceType"], $comment);
+                $this->db->addNoncompliance(
+                    $this->data["nonComplianceOrigin"],
+                    $this->data["nonComplianceType"],
+                    $this->data["shippingLot"],
+                    $comment
+                );
                 $this->checkErrorThrowException();
                 $result = null;
                 break;
