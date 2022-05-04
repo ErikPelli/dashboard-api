@@ -109,7 +109,7 @@ class RequestHandler {
         switch ($this->requestMethod) {
             case HTTP_GET:
                 // Get all users
-                $result = $this->db->getInfoUser($this->data["email"]);
+                $result = $this->db->getUsers();
                 $this->checkErrorThrowException();
                 break;
             case HTTP_POST:

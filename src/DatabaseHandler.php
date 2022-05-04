@@ -63,7 +63,7 @@ class DatabaseHandler {
             "SELECT shippingCode, deliveryDate
             FROM Lot
             ORDER BY deliveryDate DESC
-            {limit}"
+            {$limit}"
         );
 
         $result = array();
