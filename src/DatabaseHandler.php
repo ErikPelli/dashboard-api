@@ -374,7 +374,7 @@ class DatabaseHandler {
         if ($resultsPerPage <= 0 || $page <= 0) {
             throw new \LengthException("Invalid page visualization arguments");
         }
-        $offset = $resultsPerPage * $page;
+        $offset = $resultsPerPage * ($page - 1);
 
         $tickets = $this->db->query(
             "SELECT vatNum, Complaint.nonComplianceCode AS nonComplianceCode
@@ -387,7 +387,7 @@ class DatabaseHandler {
         $result = array();
         if ($tickets !== false) {
             while ($row = $tickets->fetch_assoc()) {
-                $tickets[] = $row;
+                $result[] = $row;
             }
         }
         return $result;
@@ -409,7 +409,7 @@ class DatabaseHandler {
                 "SELECT date, COUNT(*) AS counter
                 FROM Complaint
                 JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
-                WHERE date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND <= CURDATE()
                 GROUP BY date
                 ORDER BY date DESC"
             );
@@ -419,9 +419,23 @@ class DatabaseHandler {
         }
 
         if ($tickets !== false) {
-            while ($row = $tickets->fetch_assoc()) {
-                $result["days"][] = $row;
+            $temp = array();
+
+            // Initialize last 30 days
+            for ($i = 0; $i < 30; $i++) {
+                $date = new \DateTime("-$i days");
+                $date = $date->format("Y-m-d");
+                $temp[$date] = array(
+                    "date" => $date,
+                    "counter" => 0,
+                );
             }
+
+            while ($row = $tickets->fetch_assoc()) {
+                $temp[$row["date"]]["counter"] = (int) $row["counter"];
+            }
+
+            $result["days"] = array_values($temp);
         }
         return $result;
     }
