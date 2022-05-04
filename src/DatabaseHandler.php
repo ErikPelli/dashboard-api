@@ -216,7 +216,7 @@ class DatabaseHandler {
                 LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
                 LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
                 LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
-                WHERE date BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE()
+                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND <= CURDATE()
                 GROUP BY date, status
                 ORDER BY date DESC"
             );
@@ -229,7 +229,7 @@ class DatabaseHandler {
             $temp = array();
 
             // Initialize last 30 days
-            for ($i = 0; $i <= 30; $i++) {
+            for ($i = 0; $i < 30; $i++) {
                 $date = new \DateTime("-$i days");
                 $date = $date->format("Y-m-d");
                 $temp[$date] = array(
