@@ -303,7 +303,7 @@ class DatabaseHandler {
             Manager.email AS managerEmail, NCA.expirationDate AS analysisEndDate, NCC.expirationDate AS checkEndDate, NCR.result AS result
             FROM NonCompliance NC
             LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
-            LEFT JOIN Manager ON NCA.manager = Manager.fiscalCode
+            LEFT JOIN User AS Manager ON NCA.manager = Manager.fiscalCode
             LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
             LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
             WHERE NC.code = '$code'"
