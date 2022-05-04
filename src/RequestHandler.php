@@ -520,6 +520,7 @@ class RequestHandler {
      *    {
      *        "nonComplianceOrigin": "internal" | "customer" | "supplier",
      *        "nonComplianceType": int,
+     *        "shippingLot": string,
      *        "comment": string | undefined
      *    }
      *  Result:
