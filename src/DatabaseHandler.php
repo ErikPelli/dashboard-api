@@ -458,16 +458,9 @@ class DatabaseHandler {
             FROM Complaint C
             JOIN Company CO ON C.vatNum=CO.vatNum
             JOIN Lot L ON C.shippingCode=L.shippingCode
-            WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'"
+            WHERE C.vatNum='$vat' AND C.nonComplianceCode='$nonCompliance'"
         );
-
-        if ($result === false) {
-            return array();
-        } else if ($result->num_rows != 1) {
-            throw new \LogicException("Invalid user database rows");
-        } else {
-            return $result->fetch_assoc();
-        }
+        return DatabaseHandler::handleResult($result);
     }
 
     public function answerToTicket(string $vat, int $nonCompliance, string $answer): void {
@@ -476,7 +469,7 @@ class DatabaseHandler {
         $answer = $this->db->real_escape_string($answer);
         $this->db->query("UPDATE Complaint SET answer='$answer' WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
         if ($this->db->affected_rows == 0) {
-            throw new \LogicException("Complaint not found");
+            throw new \LogicException("No changes performed");
         }
     }
 
@@ -485,7 +478,7 @@ class DatabaseHandler {
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
         $this->db->query("UPDATE Complaint SET closed=1 WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
         if ($this->db->affected_rows == 0) {
-            throw new \LogicException("Complaint not found");
+            throw new \LogicException("No changes performed");
         }
     }
 }
