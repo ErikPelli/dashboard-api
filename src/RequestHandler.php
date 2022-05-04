@@ -416,7 +416,7 @@ class RequestHandler {
      * Handle the /api/noncompliance REST endpoint.
      * 
      * Get details about a noncompliance:
-     *  GET /api/noncompliances
+     *  GET /api/noncompliance
      *    {
      *        "nonCompliance": int,
      *    }
@@ -439,7 +439,7 @@ class RequestHandler {
      *    }
      * 
      * Change noncompliance status (only to next step, if currently is check, the new value can be only result):
-     *  POST /api/noncompliances
+     *  POST /api/noncompliance
      *    {
      *       "nonCompliance": int,
      *       "status": "analysys" | "check" | "result"
@@ -452,7 +452,7 @@ class RequestHandler {
      *    }
      * 
      * Create a new noncompliance:
-     *  PUT /api/noncompliances
+     *  PUT /api/noncompliance
      *    {
      *        "nonComplianceOrigin": "internal" | "customer" | "supplier",
      *        "nonComplianceType": int,
