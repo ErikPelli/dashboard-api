@@ -322,11 +322,13 @@ class RequestHandler {
     /**
      * Handle the /api/noncompliances REST endpoint.
      * 
-     * Get non compliances list ordered by most recent:
+     * Get non compliances list ordered by most recent.
+     * You can provide an optional word to search for in the noncompliance comment:
      *  GET /api/noncompliances
      *    {
      *        "resultsPerPage": int,
-     *        "pageNumber": int
+     *        "pageNumber": int,
+     *        "search": string | undefined
      *    }
      *  Result:
      *    {
@@ -390,7 +392,8 @@ class RequestHandler {
             case HTTP_GET:
                 // Get non compliances list
                 $this->jsonKeysOK(array("resultsPerPage", "pageNumber"));
-                $result = $this->db->getNonCompliances($this->data["resultsPerPage"], $this->data["pageNumber"]);
+                $search = (array_key_exists("search", $this->data)) ? $this->data["search"] : "";
+                $result = $this->db->getNonCompliances($this->data["resultsPerPage"], $this->data["pageNumber"], $search);
                 $this->checkErrorThrowException();
                 break;
             case HTTP_POST:

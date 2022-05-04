@@ -145,15 +145,21 @@ class DatabaseHandler {
      * NONCOMPLIANCES *
     \******************/
 
-    public function getNonCompliances(int $resultsPerPage, int $page): array {
+    public function getNonCompliances(int $resultsPerPage, int $page, string $search = ""): array {
         if ($resultsPerPage <= 0 || $page <= 0) {
             throw new \LengthException("Invalid page visualization arguments");
         }
         $offset = $resultsPerPage * ($page - 1);
 
+        if($search != "") {
+            $search = $this->db->real_escape_string($search);
+            $search = "WHERE comment LIKE '% $search %'";
+        }
+
         $nonCompliances = $this->db->query(
             "SELECT code AS nonComplianceCode
             FROM NonCompliance
+            {$search}
             ORDER BY date DESC
             LIMIT {$resultsPerPage} OFFSET {$offset}"
         );
