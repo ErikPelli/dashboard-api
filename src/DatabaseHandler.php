@@ -300,9 +300,10 @@ class DatabaseHandler {
         $code = $this->db->real_escape_string($code);
         $result = $this->db->query(
             "SELECT NC.processOrigin AS origin, NC.type AS nonComplianceType, NC.date AS nonComplianceDate, NC.comment AS comment,
-            NCA.expirationDate AS analysisEndDate, NCC.expirationDate AS checkEndDate, NCR.result AS result
+            Manager.email AS managerEmail, NCA.expirationDate AS analysisEndDate, NCC.expirationDate AS checkEndDate, NCR.result AS result
             FROM NonCompliance NC
             LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
+            LEFT JOIN Manager ON NCA.manager = Manager.fiscalCode
             LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
             LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
             WHERE NC.code = '$code'"
@@ -328,6 +329,8 @@ class DatabaseHandler {
                     throw new \LogicException("Invalid origin");
             }
 
+            settype($result["nonComplianceType"], "int");
+
             // Remove optional unset values
             if($result["comment"] === null) {
                 unset($result["comment"]);
@@ -340,6 +343,9 @@ class DatabaseHandler {
             }
             if($result["result"] === null) {
                 unset($result["result"]);
+            }
+            if($result["managerEmail"] === null) {
+                unset($result["managerEmail"]);
             }
 
             return $result;

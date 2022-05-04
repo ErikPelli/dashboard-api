@@ -427,8 +427,10 @@ class RequestHandler {
      *        "result": [
      *                      {
      *                          "origin": "internal" | "customer" | "supplier",
+     *                          "nonComplianceType": int,
      *                          "nonComplianceDate": string (YYYY-MM-DD),
      *                          "comment": string | undefined,
+     *                          "managerEmail": string | undefined,
      *                          "analysisEndDate": string | undefined,
      *                          "checkEndDate": string | undefined,
      *                          "result": string | undefined, 
