@@ -500,7 +500,7 @@ class DatabaseHandler {
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
         $result = $this->db->query(
             "SELECT CO.name AS customerCompanyName, CO.address AS customerCompanyAddress, L.shippingCode AS shippingCode, 
-            L.quantity AS productQuantity, C.description AS problemDescription, C.answer AS ticketAnswer
+            L.quantity AS productQuantity, C.description AS problemDescription, C.answer AS ticketAnswer,
             CASE
                 WHEN C.closed = 1 THEN \"closed\"
                 WHEN C.answer IS NOT NULL THEN \"progress\"
