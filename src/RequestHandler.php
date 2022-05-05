@@ -507,7 +507,8 @@ class RequestHandler {
      *    {
      *       "nonCompliance": int,
      *       "status": "analysys" | "check" | "result",
-     *       "manager": string (16) | undefined
+     *       "manager": string (16) | undefined,
+     *       "resultComment": string | undefined
      *    }
      *  Result:
      *    {
@@ -546,7 +547,8 @@ class RequestHandler {
                 // Change noncompliance status
                 $this->jsonKeysOK(array("nonCompliance", "status"));
                 $manager = array_key_exists("manager", $this->data) ? $this->data["manager"] : "";
-                $this->db->editNonCompliance($this->data["nonCompliance"], $this->data["status"], $manager);
+                $r = array_key_exists("resultComment", $this->data) ? $this->data["resultComment"] : null;
+                $this->db->editNonCompliance($this->data["nonCompliance"], $this->data["status"], $manager, $r);
                 $this->checkErrorThrowException();
                 $result = null;
                 break;

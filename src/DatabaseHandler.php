@@ -401,13 +401,16 @@ class DatabaseHandler {
         }
     }
 
-    public function editNonCompliance(string $code, string $status, string $manager = ""): void {
+    public function editNonCompliance(string $code, string $status, string $manager = "", string $result = null): void {
         $code = $this->db->real_escape_string($code);
         if(strlen($manager) != 16) {
             // Default manager
             $manager = "RSNSMN84H04D612M";
         }
 
+        if($result === null) {
+            $result = "The customer received a new set of working pen drives";
+        }
 
         switch ($status) {
             case "analysys":
@@ -417,7 +420,7 @@ class DatabaseHandler {
                 $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','$manager','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;
             case "result":
-                $query = "INSERT INTO NonComplianceResult(nonComplianceCode,result,comment) VALUES('$code','The customer received a new set of working pen drives','Corrected')";
+                $query = "INSERT INTO NonComplianceResult(nonComplianceCode,result,comment) VALUES('$code','$result','Corrected')";
                 break;
             default:
                 throw new \LogicException("Invalid origin");
