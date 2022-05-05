@@ -198,7 +198,7 @@ class DatabaseHandler {
 
         if ($search != "") {
             $search = $this->db->real_escape_string($search);
-            $search = "WHERE comment LIKE '% $search %'";
+            $search = "WHERE comment LIKE '%$search%'";
         }
 
         $nonCompliances = $this->db->query(
