@@ -107,10 +107,6 @@ class DatabaseHandler {
             $this->db->rollback();
             throw new \LogicException("User already exists");
         }
-
-        if($this->db->affected_rows != 1) {
-            throw new \LogicException("User already exists");
-        }
     }
 
     public function userExists(string $email, string $password): bool {
@@ -403,12 +399,12 @@ class DatabaseHandler {
 
     public function editNonCompliance(string $code, string $status, string $manager = "", string $result = null): void {
         $code = $this->db->real_escape_string($code);
-        if(strlen($manager) != 16) {
+        if (strlen($manager) != 16) {
             // Default manager
             $manager = "RSNSMN84H04D612M";
         }
 
-        if($result === null) {
+        if ($result === null) {
             $result = "The customer received a new set of working pen drives";
         }
 
