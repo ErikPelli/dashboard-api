@@ -650,6 +650,7 @@ class RequestHandler {
      *                      "shippingCode": string,
      *                      "productQuantity": int,
      *                      "problemDescription": string,
+     *                      "ticketAnswer": string | undefined,
      *                      "status": "new" | "progress" | "closed"
      *                  } | {}
      *    }
@@ -692,6 +693,9 @@ class RequestHandler {
                 // customerCompanyName, customerCompanyAddress, shippingCode, productQuantity, problemDescription, status
                 // status can be new, progress or closed
                 $result = $this->db->getTicketDetails($this->data["vat"], $this->data["nonCompliance"]);
+                if ($result["answer"] === null) {
+                    unset($result["answer"]);
+                }
                 $this->checkErrorThrowException();
                 break;
             case HTTP_POST:
