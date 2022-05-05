@@ -198,7 +198,7 @@ class DatabaseHandler {
 
         if ($search != "") {
             $search = $this->db->real_escape_string($search);
-            $search = "WHERE comment LIKE '% $search %'";
+            $search = "WHERE comment LIKE '%$search%'";
         }
 
         $nonCompliances = $this->db->query(
@@ -267,7 +267,7 @@ class DatabaseHandler {
                 LEFT JOIN NonComplianceAnalysis AS NCA ON NC.code = NCA.nonComplianceCode
                 LEFT JOIN NonComplianceCheck AS NCC ON NC.code = NCC.nonComplianceCode
                 LEFT JOIN NonComplianceResult AS NCR ON NC.code = NCR.nonComplianceCode
-                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND <= CURDATE()
+                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND date <= CURDATE()
                 GROUP BY date, status
                 ORDER BY date DESC"
             );
@@ -460,7 +460,7 @@ class DatabaseHandler {
                 "SELECT date, COUNT(*) AS counter
                 FROM Complaint
                 JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
-                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND <= CURDATE()
+                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND date <= CURDATE()
                 GROUP BY date
                 ORDER BY date DESC"
             );
