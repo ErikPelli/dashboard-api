@@ -460,7 +460,7 @@ class DatabaseHandler {
                 "SELECT date, COUNT(*) AS counter
                 FROM Complaint
                 JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
-                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND <= CURDATE()
+                WHERE date > (CURDATE() - INTERVAL 30 DAY) AND date <= CURDATE()
                 GROUP BY date
                 ORDER BY date DESC"
             );
