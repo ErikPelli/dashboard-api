@@ -107,6 +107,10 @@ class DatabaseHandler {
             $this->db->rollback();
             throw new \LogicException("User already exists");
         }
+
+        if($this->db->affected_rows != 1) {
+            throw new \LogicException("User already exists");
+        }
     }
 
     public function userExists(string $email, string $password): bool {
