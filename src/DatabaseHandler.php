@@ -401,15 +401,20 @@ class DatabaseHandler {
         }
     }
 
-    public function editNonCompliance(string $code, string $status): void {
+    public function editNonCompliance(string $code, string $status, string $manager = ""): void {
         $code = $this->db->real_escape_string($code);
+        if(strlen($manager) != 16) {
+            // Default manager
+            $manager = "RSNSMN84H04D612M";
+        }
+
 
         switch ($status) {
             case "analysys":
-                $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','RSNSMN84H04D612M','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+                $query = "INSERT INTO NonComplianceAnalysis(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','$manager','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;
             case "check":
-                $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','RSNSMN84H04D612M','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+                $query = "INSERT INTO NonComplianceCheck(nonComplianceCode,manager,employee,expirationDate) VALUES('$code','$manager','PCCPTR55H17D612D',DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
                 break;
             case "result":
                 $query = "INSERT INTO NonComplianceResult(nonComplianceCode,result,comment) VALUES('$code','The customer received a new set of working pen drives','Corrected')";

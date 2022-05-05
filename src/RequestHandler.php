@@ -506,7 +506,8 @@ class RequestHandler {
      *  POST /api/noncompliance
      *    {
      *       "nonCompliance": int,
-     *       "status": "analysys" | "check" | "result"
+     *       "status": "analysys" | "check" | "result",
+     *       "manager": string (16) | undefined
      *    }
      *  Result:
      *    {
@@ -544,7 +545,8 @@ class RequestHandler {
             case HTTP_POST:
                 // Change noncompliance status
                 $this->jsonKeysOK(array("nonCompliance", "status"));
-                $this->db->editNonCompliance($this->data["nonCompliance"], $this->data["status"]);
+                $manager = array_key_exists("manager", $this->data) ? $this->data["manager"] : "";
+                $this->db->editNonCompliance($this->data["nonCompliance"], $this->data["status"], $manager);
                 $this->checkErrorThrowException();
                 $result = null;
                 break;
@@ -693,8 +695,8 @@ class RequestHandler {
                 // customerCompanyName, customerCompanyAddress, shippingCode, productQuantity, problemDescription, status
                 // status can be new, progress or closed
                 $result = $this->db->getTicketDetails($this->data["vat"], $this->data["nonCompliance"]);
-                if ($result["answer"] === null) {
-                    unset($result["answer"]);
+                if ($result["ticketAnswer"] === null) {
+                    unset($result["ticketAnswer"]);
                 }
                 $this->checkErrorThrowException();
                 break;
