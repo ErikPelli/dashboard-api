@@ -16,6 +16,8 @@ To start the php development server use:
 php -S 127.0.0.1:8080 -t dashboard-api
 ```
 
+The REST documentation is in the RequestHandler.php file.
+
 ## Credits
 
 To make this repo files, we used the following templates/softwares/websites:
