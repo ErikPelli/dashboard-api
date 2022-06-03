@@ -439,7 +439,7 @@ class DatabaseHandler {
             "SELECT vatNum, Complaint.nonComplianceCode AS nonComplianceCode
             FROM Complaint
             JOIN NonCompliance ON Complaint.nonComplianceCode=NonCompliance.code
-            ORDER BY date DESC
+            ORDER BY date, nonComplianceCode
             LIMIT {$resultsPerPage} OFFSET {$offset}"
         );
 
