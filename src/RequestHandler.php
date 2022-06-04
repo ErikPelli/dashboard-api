@@ -686,6 +686,21 @@ class RequestHandler {
      *        "result": {}
      *    }
      * 
+     * Create a new ticket:
+     *  PUT /api/ticket
+     *    {
+     *        "vat": string,
+     *        "nonCompliance": int,
+     *        "shippingLot": string,
+     *        "description": string | undefined
+     *    }
+     *  Result:
+     *    {
+     *        "success": bool,
+     *        "error": undefined | string,
+     *        "result": {}
+     *    }
+     * 
      * @return mixed any value that will encoded into JSON "result" field.
      * @throws UnsupportedMethodException current REST method not supported.
      */
