@@ -197,8 +197,25 @@ class DatabaseHandler {
         $offset = $resultsPerPage * ($page - 1);
 
         if ($search != "") {
-            $search = $this->db->real_escape_string($search);
-            $search = "WHERE comment LIKE '%$search%'";
+            $userSearch = $this->db->real_escape_string($search);
+			$search = "WHERE comment LIKE '%$userSearch%'";
+			
+			// id search
+			if(preg_match("/^[ICS]-[0-9]+/", $userSearch)) {
+				switch($userSearch[0]) {
+					case "I":
+						$origin = 1;
+						break;
+					case "C":
+						$origin = 2;
+						break;
+					case "S":
+						$origin = 3;
+						break;
+				}
+				$id = substr($userSearch, 2);
+				$search .= " OR (processOrigin='$origin' AND code='$id')";
+			}
         }
 
         $nonCompliances = $this->db->query(
