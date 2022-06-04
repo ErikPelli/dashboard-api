@@ -716,6 +716,19 @@ class RequestHandler {
                 $this->checkErrorThrowException();
                 $result = null;
                 break;
+            case HTTP_PUT:
+                // Create a new ticket
+                $this->jsonKeysOK(array("vat", "nonCompliance", "shippingLot"));
+                $description = array_key_exists("description", $this->data) ? $this->data["description"] : '';
+                $this->db->addTicket(
+                    $this->data["vat"],
+                    $this->data["nonCompliance"],
+                    $this->data["shippingLot"],
+                    $description
+                );
+                $this->checkErrorThrowException();
+                $result = null;
+                break;
             default:
                 throw new UnsupportedMethodException();
         }

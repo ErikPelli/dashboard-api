@@ -198,24 +198,24 @@ class DatabaseHandler {
 
         if ($search != "") {
             $userSearch = $this->db->real_escape_string($search);
-			$search = "WHERE comment LIKE '%$userSearch%'";
-			
-			// id search
-			if(preg_match("/^[ICS]-[0-9]+/", $userSearch)) {
-				switch($userSearch[0]) {
-					case "I":
-						$origin = 1;
-						break;
-					case "C":
-						$origin = 2;
-						break;
-					case "S":
-						$origin = 3;
-						break;
-				}
-				$id = substr($userSearch, 2);
-				$search .= " OR (processOrigin='$origin' AND code='$id')";
-			}
+            $search = "WHERE comment LIKE '%$userSearch%'";
+
+            // id search
+            if (preg_match("/^[ICS]-[0-9]+/", $userSearch)) {
+                switch ($userSearch[0]) {
+                    case "I":
+                        $origin = 1;
+                        break;
+                    case "C":
+                        $origin = 2;
+                        break;
+                    case "S":
+                        $origin = 3;
+                        break;
+                }
+                $id = substr($userSearch, 2);
+                $search .= " OR (processOrigin='$origin' AND code='$id')";
+            }
         }
 
         $nonCompliances = $this->db->query(
@@ -553,6 +553,18 @@ class DatabaseHandler {
         $vat = $this->db->real_escape_string($vat);
         $nonCompliance = $this->db->real_escape_string($nonCompliance);
         $this->db->query("UPDATE Complaint SET closed=1 WHERE vatNum='$vat' AND nonComplianceCode='$nonCompliance'");
+        if ($this->db->affected_rows == 0) {
+            throw new \LogicException("No changes performed");
+        }
+    }
+
+    public function addTicket(string $vat, int $nonCompliance, string $lot, string $description = null): void {
+        $vat = $this->db->real_escape_string($vat);
+        $nonCompliance = $this->db->real_escape_string($nonCompliance);
+        $lot = $this->db->real_escape_string($lot);
+        $description = ($description != null && $description != "") ? "'{$this->db->real_escape_string($description)}'" : "''";
+
+        $this->db->query("INSERT INTO Complaint(vatNum,shippingCode,nonComplianceCode,description) VALUES('$vat','$lot','$nonCompliance', $description)");
         if ($this->db->affected_rows == 0) {
             throw new \LogicException("No changes performed");
         }
