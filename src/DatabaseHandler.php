@@ -222,7 +222,7 @@ class DatabaseHandler {
             "SELECT code AS nonComplianceCode
             FROM NonCompliance
             {$search}
-            ORDER BY date DESC
+            ORDER BY date DESC, code DESC
             LIMIT {$resultsPerPage} OFFSET {$offset}"
         );
 
