@@ -337,7 +337,7 @@ class DatabaseHandler {
 
     public function addNoncompliance(string $origin, int $type, string $lot, string $comment = null): void {
         $type = $this->db->real_escape_string($type);
-        $comment = ($comment !== null) ? "'" . $this->db->real_escape_string($comment) . "'" : "''";
+        $comment = ($comment !== null && $comment != "") ? "'{$this->db->real_escape_string($comment)}'" : "''";
         switch ($origin) {
             case "internal":
                 $origin = 1;
